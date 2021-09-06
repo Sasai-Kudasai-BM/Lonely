@@ -1,0 +1,51 @@
+
+modLoader="javafml"
+loaderVersion="[36,)"
+license="All rights reserved"
+[[mods]]
+modId="skds_core"
+version="0.2.0"
+displayName="SKDS Core"
+credits="Thanks for me and me and... also me <3"
+authors="Sasai_Kudasai_BM" 
+description='''
+Some... description?
+Is it really needed?
+'''
+[[mods]]
+modId="lonely"
+version="0.0.1"
+displayName="Lonely"
+credits="Thanks for me and me and... also me <3"
+authors="Sasai_Kudasai_BM" 
+description='''
+Some... description?
+Is it really needed?
+'''
+
+[[dependencies.lonely]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.16.5,1.17)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.lonely]]
+    modId="forge"
+    mandatory=true
+    versionRange="[36,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.skds_core]]
+    modId="forge"
+    mandatory=true
+    versionRange="[36,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.skds_core]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.16.5,1.17)"
+    ordering="NONE"
+    side="BOTH"
