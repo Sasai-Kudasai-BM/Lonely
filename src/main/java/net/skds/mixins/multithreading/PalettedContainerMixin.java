@@ -1,4 +1,4 @@
-package net.skds.core.mixins.multithreading;
+package net.skds.mixins.multithreading;
 
 import java.util.concurrent.locks.ReentrantLock;
 

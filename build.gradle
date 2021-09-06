@@ -27,7 +27,7 @@ apply plugin: 'eclipse'
 
 version = "${project.modVersion}"
 group = 'net.skds.lonely_project'
-archivesBaseName = project.modId + "-${project.minecraft}"
+archivesBaseName = 'lonely'
 
 //sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
 
@@ -40,7 +40,7 @@ minecraft {
 		client {
 			workingDirectory project.file('run')
 			arg "--mixin"
-			arg "mixins." + project.modId + ".json"
+			arg "mixins.lonely_project.json"
 			arg "--username=Sasai_Kudasai_BM"
 			jvmArgs "-Xmx3G"
 			jvmArgs "-XX:+UseConcMarkSweepGC"
@@ -58,7 +58,8 @@ minecraft {
 
 		server {
 			workingDirectory project.file('run')
-			arg '--mixin mixins.' + project.modId + '.json'
+			arg '--mixin'
+			arg "mixins.lonely_project.json"
 			arg "--username=Sasai_Kudasai_BM"
 			jvmArgs "-Xmx3G"
 			jvmArgs "-XX:+UseConcMarkSweepGC"
@@ -136,8 +137,7 @@ task replaceResources {
 project.tasks.withType(Jar) { jarTask -> 
 	jarTask.manifest {
 		attributes([
-			"MixinConfigs": 'mixins.' + project.modId + '.json',
-			"MixinConfigs": 'mixins.lonely.json',
+			"MixinConfigs": 'mixins.lonely_project.json',
 			"Specification-Title": project.name,
 			"Implementation-Title": project.name,
 			"Implementation-Version": "${version}"
@@ -160,6 +160,6 @@ artifacts {
 
 
 mixin {
-	add sourceSets.main, 'mixins.' + project.modId + '.refmap.json'
-	add sourceSets.main, 'mixins.lonely.refmap.json'
+	//add sourceSets.main, 'mixins.' + project.modId + '.refmap.json'
+	add sourceSets.main, 'mixins.lonely_proj.refmap.json'
 }

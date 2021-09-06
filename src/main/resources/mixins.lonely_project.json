@@ -1,9 +1,9 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "net.skds.core.mixins",
+  "package": "net.skds.mixins",
   "target": "@env(DEFAULT)",  
-  "refmap": "mixins.skds_core.refmap.json",
+  "refmap": "mixins.lonely_proj.refmap.json",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
     "multithreading.ChunkSectionMixin",
@@ -12,7 +12,12 @@
     "multithreading.MinecraftServerMixin",
 
     "custom.WorldMixin",
-    "custom.BlockMixin"
+    "custom.BlockMixin",
+
+
+    
+    "lonely.PlayerInventoryMixin",
+    "lonely.PlayerEntityMixin"
   ],
   "client": [
   ],

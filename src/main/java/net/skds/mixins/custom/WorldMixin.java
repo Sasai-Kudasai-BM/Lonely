@@ -1,4 +1,4 @@
-package net.skds.core.mixins.custom;
+package net.skds.mixins.custom;
 
 import org.spongepowered.asm.mixin.Mixin;
 

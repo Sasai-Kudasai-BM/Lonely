@@ -1,4 +1,4 @@
-package net.skds.core.mixins.multithreading;
+package net.skds.mixins.multithreading;
 
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
