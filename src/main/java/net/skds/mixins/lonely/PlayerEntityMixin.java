@@ -14,36 +14,41 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.skds.lonely.util.extended.EPlayerContainer;
+import net.skds.lonely.inventory.EContainer;
 import net.skds.lonely.util.extended.EPlayerInventory;
 import net.skds.lonely.util.hooks.PlayerHooks;
+import net.skds.lonely.util.imix.IMixPE;
 
 @Mixin(PlayerEntity.class)
-public abstract class PlayerEntityMixin extends LivingEntity {
+public abstract class PlayerEntityMixin extends LivingEntity implements IMixPE {
 
+	private EContainer cont;
 	@Shadow
-	private PlayerContainer container;
-	@Shadow
-	public PlayerInventory inventory;
-
-	@Inject(method = "<init>",at = @At(value = "TAIL"))
-	public void cont(World w, BlockPos pos, float yaw, GameProfile profile, CallbackInfo ci) {
-		PlayerEntity p = (PlayerEntity) (Object) this;
-		if (!p.abilities.isCreativeMode) {
-			this.container = new EPlayerContainer(this.inventory, !world.isRemote, p);
-			inventory = new EPlayerInventory(p);
-		}
-	}
+	public final PlayerInventory inventory = new EPlayerInventory((PlayerEntity) (Object) this);
 
 	protected PlayerEntityMixin(EntityType<? extends LivingEntity> type, World worldIn) {
 		super(type, worldIn);
 	}
 
+	@Inject(method = "<init>",at = @At(value = "TAIL"))
+	public void cont(World w, BlockPos pos, float yaw, GameProfile profile, CallbackInfo ci) {
+		PlayerEntity p = (PlayerEntity) (Object) this;
+		cont = new EContainer(p);
+	}
 
+	@Override
+	public EContainer getCont() {
+		return cont;
+	}
+
+	@Override
+	public void setCont(EContainer cont) {
+		this.cont = cont;		
+	}
+	
 	@Inject(method = "getItemStackFromSlot",at = @At("HEAD"),cancellable = true)
 	public void getItemStackFromSlot(EquipmentSlotType slotIn, CallbackInfoReturnable<ItemStack> ci) {
 		PlayerEntity p = (PlayerEntity) (Object) this;
@@ -71,5 +76,4 @@ public abstract class PlayerEntityMixin extends LivingEntity {
 		}
 		ci.cancel();
 	}
-
 }

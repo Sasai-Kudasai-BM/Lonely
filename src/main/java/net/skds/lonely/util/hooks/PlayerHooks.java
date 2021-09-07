@@ -3,25 +3,25 @@ package net.skds.lonely.util.hooks;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.ItemStack;
-import net.skds.lonely.util.extended.EPlayerInventory;
 
 public class PlayerHooks {
 
 	public static ItemStack getItemStackFromSlot(EquipmentSlotType slotIn, PlayerEntity player) {
-		if (slotIn == EquipmentSlotType.MAINHAND) {			
-			return ((EPlayerInventory) player.inventory).mainHand;
+		if (slotIn == EquipmentSlotType.MAINHAND) {
+			return player.inventory.getStackInSlot(0);
 		} else if (slotIn == EquipmentSlotType.OFFHAND) {
-			return ((EPlayerInventory) player.inventory).offHand;
+			return player.inventory.getStackInSlot(1);
 		} else {
 			return ItemStack.EMPTY;
 		}
 	}
 
 	public static void setItemStackToSlot(EquipmentSlotType slotIn, PlayerEntity player, ItemStack stack) {
+		//System.out.println(stack + " " + slotIn);
 		if (slotIn == EquipmentSlotType.MAINHAND) {	
-			((EPlayerInventory) player.inventory).mainHand = stack;		
+			player.inventory.setInventorySlotContents(0, stack);		
 		} else if (slotIn == EquipmentSlotType.OFFHAND) {
-			((EPlayerInventory) player.inventory).offHand = stack;		
+			player.inventory.setInventorySlotContents(1, stack);	
 		}
 	}
 }
