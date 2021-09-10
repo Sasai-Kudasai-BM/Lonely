@@ -16,8 +16,8 @@ public class EContainer extends Container {
 		super(null, 0);
 		//inv = new EInventory(player);
 		inv = player.inventory;
-		addSlot(new Slot(inv, 0, 0, 0));
-		addSlot(new Slot(inv, 1, 77, 62));
+		addSlot(new Slot(inv, 1, 17, 104));
+		addSlot(new Slot(inv, 0, 53, 104));
 	}
 
 	@Override
@@ -41,7 +41,7 @@ public class EContainer extends Container {
 		//	slotId = 0;
 		//}
 		ItemStack stack = super.slotClick(slotId, dragType, clickTypeIn, player);
-		//System.out.println(player.openContainer);
+		//System.out.println(slotId);
 		return stack;
 	}
 

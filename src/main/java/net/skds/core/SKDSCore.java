@@ -17,7 +17,6 @@ import net.skds.core.network.PacketHandler;
 public class SKDSCore {
 
     public static MinecraftServer SERVER = null;
-    public static final boolean DEV;
     public static final String MOD_ID = "skds_core";
     public static final String MOD_NAME = "SKDS Core";
     // Directly reference a log4j logger.
@@ -49,10 +48,4 @@ public class SKDSCore {
 
     private void processIMC(final InterModProcessEvent event) {
     }
-
-	static {
-		String targ = System.getenv("target");
-		LOGGER.info("Env target: " + targ);
-		DEV = targ.contains("dev");	
-	}
 }
