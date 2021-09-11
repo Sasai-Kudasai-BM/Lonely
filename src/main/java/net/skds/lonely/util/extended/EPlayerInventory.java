@@ -86,6 +86,10 @@ public class EPlayerInventory extends PlayerInventory {
 
 	@Override
 	public void setInventorySlotContents(int index, ItemStack stack) {
+		if (player.world.isRemote) {
+
+			//System.out.println(stack);
+		}
 		if (isLonely() && !(index >= -1 && index < 2)) {
 			if (stack.getItem() == Items.BARRIER) {
 				return;
@@ -122,7 +126,10 @@ public class EPlayerInventory extends PlayerInventory {
 
 	@Override
 	public ItemStack getCurrentItem() {
-		return getStackInSlot(0);
+		if (isLonely()) {
+			return getStackInSlot(0);
+		}
+		return super.getCurrentItem();
 	}
 
 	@Override

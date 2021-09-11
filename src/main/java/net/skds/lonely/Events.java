@@ -8,10 +8,7 @@ import net.minecraftforge.event.TickEvent.PlayerTickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent.ItemPickupEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.skds.core.network.PacketHandler;
-import net.skds.lonely.inventory.EContainer;
-import net.skds.lonely.inventory.EGui;
 import net.skds.lonely.network.OpenEGuiPacket;
-import net.skds.lonely.util.imix.IMixPE;
 
 public class Events {
 	
@@ -33,10 +30,7 @@ public class Events {
 			Minecraft mc = Minecraft.getInstance();
 			PlayerEntity player = mc.player;
 			if (player != null && !player.abilities.isCreativeMode) {
-				EContainer container = ((IMixPE) player).getCont();
-				player.openContainer = container;
-				EGui gui = new EGui(container, player.inventory);
-				e.setGui(gui);
+				e.setCanceled(true);
 				PacketHandler.sendToServer(new OpenEGuiPacket(player));
 			}
 		}

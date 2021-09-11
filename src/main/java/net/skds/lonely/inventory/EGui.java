@@ -30,7 +30,7 @@ import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.vector.Quaternion;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 import net.skds.lonely.Lonely;
 import net.skds.mixins.lonely.ContainerScreenInvoker;
@@ -40,30 +40,26 @@ public class EGui extends ContainerScreen<EContainer> {
 
 	private final static ResourceLocation TEXTURE = new ResourceLocation(Lonely.MOD_ID, "textures/gui/inventory.png");
 
-	/** The old x position of the mouse pointer */
 	private float oldMouseX;
-	/** The old y position of the mouse pointer */
 	private float oldMouseY;
-	private boolean buttonClicked;
-
 	private float bodyYaw = 0;
 	private float bodyPitch = 0;
-
 	private float prevBodyYaw = 0;
 	private float prevBodyPitch = 0;
-
 	private float bodyYawV = 0;
 	private float bodyPitchV = 0;
 
 	private Minecraft mc = Minecraft.getInstance();
+
+	private long[] mbPressedTime = new long[6];
 
 	private int winX0;
 	private int winY0;
 	private int winX1;
 	private int winY1;
 
-	public EGui(EContainer screenContainer, PlayerInventory inv) {
-		super(screenContainer, inv, new TranslationTextComponent("lonely.jopa"));
+	public EGui(EContainer screenContainer, PlayerInventory inv, ITextComponent tc) {
+		super(screenContainer, inv, tc);
 		xSize = 296;
 		ySize = 166;
 
@@ -83,7 +79,7 @@ public class EGui extends ContainerScreen<EContainer> {
 
 		bodyPitch = Math.max(bodyPitch, -75);
 		bodyPitch = Math.min(bodyPitch, 45);
-
+		
 		super.tick();
 	}
 
@@ -100,7 +96,7 @@ public class EGui extends ContainerScreen<EContainer> {
 		partialTicks = Minecraft.getInstance().getRenderPartialTicks();
 		rotateBody(matrixStack, mouseX, mouseY);
 		RenderSystem.pushMatrix();
-		
+
 		RenderSystem.enableDepthTest();
 		RenderSystem.translatef(0.0F, 0.0F, 1000.0F);
 		RenderSystem.colorMask(false, false, false, false);
@@ -126,7 +122,6 @@ public class EGui extends ContainerScreen<EContainer> {
 		RenderSystem.translatef(0.0F, 0.0F, 950.0F);
 		RenderSystem.depthFunc(GL11C.GL_LEQUAL);
 		RenderSystem.disableDepthTest();
-
 
 		renderButtons(matrixStack, mouseX, mouseY, partialTicks);
 		renderHands(matrixStack, mouseX, mouseY, partialTicks);
@@ -158,7 +153,7 @@ public class EGui extends ContainerScreen<EContainer> {
 		boolean inZone = super.isPointInRegion(winX0, winY0, winX1, winY1, mouseXi, mouseYi);
 		final float dec = 0.9F;
 		final float mul = -0.75F;
-		if (inZone && buttonClicked) {
+		if (inZone && isButtonPressed(0)) {
 			float dx = (mouseX - oldMouseX) * mul;
 			float dy = (mouseY - oldMouseY) * mul * 0.6F;
 			bodyPitchV += dy;
@@ -176,7 +171,7 @@ public class EGui extends ContainerScreen<EContainer> {
 	}
 
 	protected void renderBody(float partialTicks) {
-		RenderSystem.pushMatrix();		
+		RenderSystem.pushMatrix();
 
 		final float scale = 60;
 		int x0 = this.guiLeft + (xSize / 2);
@@ -215,20 +210,7 @@ public class EGui extends ContainerScreen<EContainer> {
 
 	protected void renderAmbient(float partialTicks, MatrixStack matrixStack, float offset) {
 		RenderSystem.pushMatrix();
-		//RenderSystem.enableDepthTest();
-		//GlStateManager.viewport(guiLeft *3, guiTop *3, 100, 300);
-		//GL14.glViewport(0, 0, width, height);
-		//GL14.glMatrixMode(GL14.GL_PROJECTION);
-	
-		//RenderSystem.viewport(x + guiLeft, y + guiTop, width, height);
-		//RenderSystem.enableScissor(x + guiLeft, y + guiTop, width, height);
-		//RenderSystem.disableScissor();
-
-		//fill(matrixStack, 4680, 2260, -4680, -2260, -16777216);
-
-		//RenderSystem.translatef(0.0F, 0.0F, 950.0F);
 		matrixStack.push();
-		//matrixStack.scale(3, 3, 3);
 		PlayerEntity player = playerInventory.player;
 
 		matrixStack.rotate(new Quaternion(Vector3f.ZP, 180, true));
@@ -253,7 +235,6 @@ public class EGui extends ContainerScreen<EContainer> {
 		for (Entity entity : world.getEntitiesInAABBexcluding(player, box, e -> (e instanceof ItemEntity))) {
 			matrixStack.push();
 			Vector3d v3 = entity.getPositionVec().subtract(pos);
-			//matrixStack.scale(1, -1, 1);
 			matrixStack.translate(v3.x, v3.y, v3.z);
 			EntityRendererManager entityrenderermanager = mc.getRenderManager();
 			EntityRenderer<? super Entity> ir = entityrenderermanager.getRenderer(entity);
@@ -352,24 +333,23 @@ public class EGui extends ContainerScreen<EContainer> {
 
 	@Override
 	public boolean mouseClicked(double mouseX, double mouseY, int button) {
-		buttonClicked = true;
+		if (button < mbPressedTime.length) {
+			mbPressedTime[button] = System.currentTimeMillis() - 1;
+		}
 		return super.mouseClicked(mouseX, mouseY, button);
 	}
 
 	@Override
 	public boolean mouseReleased(double mouseX, double mouseY, int button) {
-		if (this.buttonClicked) {
-			this.buttonClicked = false;
-			//return true;
+		if (button < mbPressedTime.length) {
+			mbPressedTime[button] = -1;
 		}
 		return super.mouseReleased(mouseX, mouseY, button);
 	}
 
 	@Override
 	protected boolean hasClickedOutside(double mouseX, double mouseY, int guiLeftIn, int guiTopIn, int mouseButton) {
-		//System.out.println(mouseX + " " + mouseY);
 		return super.hasClickedOutside(mouseX, mouseY, guiLeftIn, guiTopIn, mouseButton);
-		//return false;
 	}
 
 	/**
@@ -378,7 +358,6 @@ public class EGui extends ContainerScreen<EContainer> {
 	@Override
 	protected void handleMouseClick(Slot slotIn, int slotId, int mouseButton, ClickType type) {
 		super.handleMouseClick(slotIn, slotId, mouseButton, type);
-		//System.out.println(slotId);
 	}
 
 	@Override
@@ -388,5 +367,16 @@ public class EGui extends ContainerScreen<EContainer> {
 
 	@Override
 	protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int x, int y) {
+	}
+
+	private boolean isButtonPressed(int i) {
+		return getPressedTime(i) > 0;
+	}
+
+	private int getPressedTime(int i) {
+		if (i < mbPressedTime.length && mbPressedTime[i] > 0) {
+			return (int) (System.currentTimeMillis() - mbPressedTime[i]);
+		}
+		return 0;
 	}
 }

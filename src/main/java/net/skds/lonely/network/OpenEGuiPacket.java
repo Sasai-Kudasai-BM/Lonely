@@ -4,10 +4,11 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
 import net.skds.core.SKDSCore;
-import net.skds.lonely.inventory.EContainer;
+import net.skds.lonely.reg.ContProvider;
 
 public class OpenEGuiPacket {
 
@@ -32,8 +33,10 @@ public class OpenEGuiPacket {
 	public void handle(Supplier<NetworkEvent.Context> context) {
 
 		if (SKDSCore.SERVER != null) {
-			PlayerEntity player = SKDSCore.SERVER.getPlayerList().getPlayerByUUID(id);
-			player.openContainer = new EContainer(player);
+			ServerPlayerEntity player = SKDSCore.SERVER.getPlayerList().getPlayerByUUID(id);
+			player.openContainer(ContProvider.PLAYER_INV);
+			//player.openContainer = new EContainer(player);
+			//player.openContainer.addListener(player);
 		}
 
 		context.get().setPacketHandled(true);
