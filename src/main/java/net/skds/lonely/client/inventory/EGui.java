@@ -1,4 +1,4 @@
-package net.skds.lonely.inventory;
+package net.skds.lonely.client.inventory;
 
 import java.util.Iterator;
 
@@ -27,12 +27,16 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.vector.Matrix3f;
+import net.minecraft.util.math.vector.Matrix4f;
 import net.minecraft.util.math.vector.Quaternion;
+import net.minecraft.util.math.vector.TransformationMatrix;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 import net.skds.lonely.Lonely;
+import net.skds.lonely.inventory.EContainer;
 import net.skds.mixins.lonely.ContainerScreenInvoker;
 
 @SuppressWarnings("deprecation")
@@ -40,14 +44,16 @@ public class EGui extends ContainerScreen<EContainer> {
 
 	private final static ResourceLocation TEXTURE = new ResourceLocation(Lonely.MOD_ID, "textures/gui/inventory.png");
 
-	private float oldMouseX;
-	private float oldMouseY;
+	private float oldMouseX = 0;
+	private float oldMouseY = 0;
 	private float bodyYaw = 0;
 	private float bodyPitch = 0;
 	private float prevBodyYaw = 0;
 	private float prevBodyPitch = 0;
 	private float bodyYawV = 0;
 	private float bodyPitchV = 0;
+
+	int clickBody = -1;
 
 	private Minecraft mc = Minecraft.getInstance();
 
@@ -71,6 +77,7 @@ public class EGui extends ContainerScreen<EContainer> {
 
 	@Override
 	public void tick() {
+
 		prevBodyPitch = bodyPitch;
 		prevBodyYaw = bodyYaw;
 
@@ -79,6 +86,10 @@ public class EGui extends ContainerScreen<EContainer> {
 
 		bodyPitch = Math.max(bodyPitch, -75);
 		bodyPitch = Math.min(bodyPitch, 45);
+
+		final float dec = 0.8F;
+		bodyPitchV *= dec;
+		bodyYawV *= dec;
 		
 		super.tick();
 	}
@@ -106,12 +117,13 @@ public class EGui extends ContainerScreen<EContainer> {
 		RenderSystem.depthFunc(GL11C.GL_GEQUAL);
 		fill(matrixStack, guiLeft + winX0, guiTop + winY0, guiLeft + winX0 + winX1, guiTop + winY0 + winY1, -16777216);
 		RenderSystem.depthFunc(GL11C.GL_LEQUAL);
-		RenderSystem.translatef(0.0F, 0.0F, 200.0F);
 
+		RenderSystem.translatef(0.0F, 0.0F, 200.0F);
 		RenderSystem.disableDepthTest();
+
 		renderBlack(matrixStack);
 		renderGuiTexture(matrixStack, partialTicks);
-		renderBody(partialTicks);
+		renderBody(partialTicks, mouseX, mouseY);
 
 		RenderSystem.enableDepthTest();
 		RenderSystem.depthFunc(GL11C.GL_GEQUAL);
@@ -151,16 +163,13 @@ public class EGui extends ContainerScreen<EContainer> {
 		float mouseX = (float) mc.mouseHelper.getMouseX();
 		float mouseY = (float) mc.mouseHelper.getMouseY();
 		boolean inZone = super.isPointInRegion(winX0, winY0, winX1, winY1, mouseXi, mouseYi);
-		final float dec = 0.9F;
-		final float mul = -0.75F;
+		final float mul = -1.0F / mc.gameSettings.guiScale;
 		if (inZone && isButtonPressed(0)) {
 			float dx = (mouseX - oldMouseX) * mul;
 			float dy = (mouseY - oldMouseY) * mul * 0.6F;
 			bodyPitchV += dy;
 			bodyYawV += dx;
 		}
-		bodyPitchV *= dec;
-		bodyYawV *= dec;
 
 		if (Math.abs(bodyPitchV) < .1F) {
 			bodyPitchV = 0;
@@ -170,7 +179,7 @@ public class EGui extends ContainerScreen<EContainer> {
 		}
 	}
 
-	protected void renderBody(float partialTicks) {
+	protected void renderBody(float partialTicks, int mouseX, int mouseY) {
 		RenderSystem.pushMatrix();
 
 		final float scale = 60;
@@ -194,16 +203,34 @@ public class EGui extends ContainerScreen<EContainer> {
 		renderAmbient(partialTicks, matrixStack2, offset);
 
 		Quaternion quaternion = new Quaternion(Vector3f.ZP, 180, true);
-		quaternion.multiply(new Quaternion(Vector3f.YP, player.rotationYaw + 180, true));
+		quaternion.multiply(new Quaternion(Vector3f.YP, player.getYaw(partialTicks) + 180, true));
+		
 		matrixStack2.rotate(quaternion);
+		
+
+		//System.out.println(v);
+		//Quat pp = new Quat(Vec3.XP, 30, true);
+		//OBB obb = new OBB(prikol.offset(prikol.getCenter().scale(-1)), new Matrix3(pp), new Vec3(prikol.getCenter()));
+
+		//IVertexBuilder buffer = mc.getRenderTypeBuffers().getBufferSource().getBuffer(RenderType.LINES);
+		//WorldRenderer.drawBoundingBox(matrixStack2, buffer, new AxisAlignedBB(-0.25, 0.75, -0.15, 0.25, 1.3, -0.4), 0, 1, 0, 1);
+
+		//========================================================
+		//obb.render(matrixStack2.getLast().getMatrix(), buffer, 1, 1, 0, 1);
+		//========================================================
+		
+		if (clickBody >= 0) {
+			clickBodyPlace(matrixStack2, mouseX, mouseY, clickBody);
+			clickBody = -1;
+		}
 
 		EntityRendererManager entityrenderermanager = mc.getRenderManager();
 		EntityRenderer<? super PlayerEntity> pr = entityrenderermanager.getRenderer(player);
-		IRenderTypeBuffer.Impl buffer = mc.getRenderTypeBuffers().getBufferSource();
+		IRenderTypeBuffer.Impl buffer2 = mc.getRenderTypeBuffers().getBufferSource();
 		entityrenderermanager.setRenderShadow(false);
-		pr.render(player, 0, partialTicks, matrixStack2, buffer, 15728880);
+		pr.render(player, 0, partialTicks, matrixStack2, buffer2, 15728880);
 
-		buffer.finish();
+		buffer2.finish();
 		entityrenderermanager.setRenderShadow(true);
 		RenderSystem.popMatrix();
 	}
@@ -342,9 +369,56 @@ public class EGui extends ContainerScreen<EContainer> {
 	@Override
 	public boolean mouseReleased(double mouseX, double mouseY, int button) {
 		if (button < mbPressedTime.length) {
+			if (getPressedTime(button) < 200) {
+				if (super.isPointInRegion(winX0, winY0, winX1, winY1, mouseX, mouseY)) {
+					clickBody = button;
+				}
+			}
+
 			mbPressedTime[button] = -1;
 		}
 		return super.mouseReleased(mouseX, mouseY, button);
+	}
+
+	private void clickBodyPlace(MatrixStack matrixStack, int mouseX, int mouseY, int button) {
+		matrixStack.push();
+		matrixStack.rotate(new Quaternion(Vector3f.YN, playerInventory.player.renderYawOffset, true));
+
+		float x0 = mouseX;
+		float y0 = mouseY;
+		x0 -= this.guiLeft + (xSize / 2);
+		y0 -= this.guiTop + ySize - 20;
+
+		x0 /= 60;
+		y0 /= 60;
+		Matrix3f matrix3f = matrixStack.getLast().getNormal();
+		matrix3f.transpose();
+		Matrix4f matrix4f = matrixStack.getLast().getMatrix();
+
+		TransformationMatrix transformationMatrix = new TransformationMatrix(matrix4f);
+
+		Vector3f trans = transformationMatrix.getTranslation();
+		trans.mul(1F / 60);
+
+		Vector3f vf1 = new Vector3f(x0, y0, 100);
+		Vector3f vf2 = new Vector3f(x0, y0, -100);
+		vf1.sub(trans);
+		vf2.sub(trans);
+		vf1.transform(matrix3f);
+		vf2.transform(matrix3f);
+
+		
+		//Quat pp = new Quat(Vec3.XP, 30, true);
+		//OBB obb = new OBB(prikol.offset(prikol.getCenter().scale(-1)), new Matrix3(pp), new Vec3(prikol.getCenter()));
+
+		//Optional<Vector3d> op = obb.rayTrace(vf1, vf2);
+		//Optional<Vector3d> op = prikol.rayTrace(new Vector3d(vf1), new Vector3d(vf2));
+		//if (op.isPresent()) {
+		//	Vector3d rt = op.get();
+		//	System.out.println(rt);
+		//}
+
+		matrixStack.pop();
 	}
 
 	@Override

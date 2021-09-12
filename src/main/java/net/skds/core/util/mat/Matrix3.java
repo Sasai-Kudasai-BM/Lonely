@@ -1,19 +1,25 @@
 package net.skds.core.util.mat;
 
 import net.minecraft.util.math.vector.Matrix3f;
+import net.skds.core.util.interfaces.IMixM3f;
 
 public class Matrix3 {
-	protected double m00 = 1D;
-	protected double m01 = 0D;
-	protected double m02 = 0D;
-	protected double m10 = 0D;
-	protected double m11 = 1D;
-	protected double m12 = 0D;
-	protected double m20 = 0D;
-	protected double m21 = 0D;
-	protected double m22 = 1D;
+	public double m00 = 1D;
+	public double m01 = 0D;
+	public double m02 = 0D;
+	public double m10 = 0D;
+	public double m11 = 1D;
+	public double m12 = 0D;
+	public double m20 = 0D;
+	public double m21 = 0D;
+	public double m22 = 1D;
 
 	public Matrix3() {
+	}
+
+	public static Matrix3 getFromMoj(Matrix3f m3f) {
+		Matrix3 matrix = ((IMixM3f) (Object) m3f).getM();
+		return matrix;
 	}
 
 	public Matrix3(Quat quaternionIn) {
@@ -223,6 +229,20 @@ public class Matrix3 {
 		m3f.func_232605_a_(2, 1, (float) m21);
 		m3f.func_232605_a_(2, 2, (float) m22);
 		return m3f;
+	}
+
+	public Matrix3 copy() {
+		Matrix3 m3 = new Matrix3();
+		m3.m00 = this.m00;
+		m3.m01 = this.m01;
+		m3.m02 = this.m02;
+		m3.m10 = this.m10;
+		m3.m11 = this.m11;
+		m3.m12 = this.m12;
+		m3.m20 = this.m20;
+		m3.m21 = this.m21;
+		m3.m22 = this.m22;
+		return m3;
 	}
 
 }
