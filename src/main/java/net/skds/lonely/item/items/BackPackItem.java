@@ -1,16 +1,17 @@
 package net.skds.lonely.item.items;
 
 import net.minecraft.item.Item;
+import net.skds.lonely.client.render.LonelyItemRenderer;
 import net.skds.lonely.item.ILonelyItem;
 import net.skds.lonely.reg.RegItems;
 
-public class BackPackItem extends Item implements ILonelyItem {
+public class BackpackItem extends Item implements ILonelyItem {
 
-	public BackPackItem() {
+	public BackpackItem() {
 		this(new Properties());
 	}
 
-	public BackPackItem(Properties properties) {
+	public BackpackItem(Properties properties) {
 		super(properties.group(RegItems.CTAB));
 	}
 
@@ -23,5 +24,14 @@ public class BackPackItem extends Item implements ILonelyItem {
 	public String getId() {
 		return "backpack";
 	}
+
+	@Override
+	public LonelyItemRenderer<BackpackItem> getRenderer() {
+		return null;
+	}
 	
+	@Override
+	public int getSize() {
+		return 0;
+	}
 }
