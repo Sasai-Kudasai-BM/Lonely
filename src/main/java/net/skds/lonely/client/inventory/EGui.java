@@ -142,7 +142,14 @@ public class EGui extends ContainerScreen<EContainer> {
 		this.oldMouseX = (float) mc.mouseHelper.getMouseX();
 		this.oldMouseY = (float) mc.mouseHelper.getMouseY();
 
+
 		RenderSystem.popMatrix();
+		//RenderSystem.fog(2918, 1.0F, 1.0F, 1.0F, 1.0F);
+		//RenderSystem.fogStart(0.0F);
+		//RenderSystem.fogEnd(0.1F);
+		//RenderSystem.fogDensity(100.0F);
+		//RenderSystem.fogMode(FogMode.LINEAR);
+		//RenderSystem.setupNvFogDistance();
 	}
 
 	public void renderBlack(MatrixStack matrixStack) {

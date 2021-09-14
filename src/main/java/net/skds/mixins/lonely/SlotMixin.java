@@ -50,7 +50,7 @@ public abstract class SlotMixin {
 	@Overwrite
 	public ItemStack getStack() {
 		if (checkBadPidod()) {
-			return baaad;
+			//return baaad;
 		}
 		return this.inventory.getStackInSlot(this.slotIndex);
 	}

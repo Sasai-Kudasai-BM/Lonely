@@ -14,6 +14,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 @OnlyIn(Dist.CLIENT)
 public class EPlayerRenderer extends PlayerRenderer {
 
+	@SuppressWarnings("unused")
 	private static final Minecraft mc = Minecraft.getInstance();
 
 	public EPlayerRenderer(EntityRendererManager renderManager, boolean useSmallArms) {

@@ -51,7 +51,7 @@ public class EPlayerInventory extends PlayerInventory {
 		if (i == -1) {
 			i = this.getFirstEmptyStack();
 		}
-		System.out.println(i);
+		//System.out.println(i);
 		return i == -1 ? itemStackIn.getCount() : this.addResource(i, itemStackIn);
 	}
 

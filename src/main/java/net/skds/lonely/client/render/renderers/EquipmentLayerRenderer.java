@@ -17,7 +17,9 @@ import net.skds.lonely.item.ILonelyItem;
 
 public class EquipmentLayerRenderer<T extends PlayerEntity, M extends PlayerModel<T> & IHasArm> extends LayerRenderer<T, M> {
 
+	@SuppressWarnings("unused")
 	private static final Minecraft mc = Minecraft.getInstance();
+	@SuppressWarnings("unused")
 	private final EPlayerRenderer playerRenderer;
 
 	@SuppressWarnings("unchecked")
@@ -34,13 +36,14 @@ public class EquipmentLayerRenderer<T extends PlayerEntity, M extends PlayerMode
 		if (!inventory.isLonely()) {
 			return;
 		}
+		//System.out.println(inventory.equipmentSlots);
 		int s = inventory.equipmentSlots.size();
 		for (int i = 0; i < s; i++) {
 			ItemStack stack = inventory.equipmentSlots.get(i);
 			if (!stack.isEmpty()) {
 				if (stack.getItem() instanceof ILonelyItem) {
 					ILonelyItem lonelyItem = (ILonelyItem) stack.getItem();
-					lonelyItem.getRenderer().render(stack, TransformType.NONE, matrixStack, buffer, packedLight, OverlayTexture.NO_OVERLAY, partialTicks);
+					lonelyItem.getRenderer().render(stack, TransformType.NONE, matrixStack, buffer, packedLight, OverlayTexture.NO_OVERLAY, partialTicks, i, player);
 				}
 			}
 		}

@@ -35,6 +35,11 @@ public abstract class PlayerEntityMixin extends LivingEntity {
 		//PlayerEntity p = (PlayerEntity) (Object) this;
 	}
 
+	@Inject(method = "replaceItemInInventory", at = @At("HEAD"), cancellable = true)
+	void replaceItemInInventory(int inventorySlot, ItemStack itemStackIn, CallbackInfoReturnable<Boolean> ci) {
+		PlayerHooks.replaceItemInInventory(inventorySlot, itemStackIn, ci, (PlayerEntity) (Object) this);
+	}
+
 	@Inject(method = "getItemStackFromSlot", at = @At("HEAD"), cancellable = true)
 	public void getItemStackFromSlot(EquipmentSlotType slotIn, CallbackInfoReturnable<ItemStack> ci) {
 		PlayerEntity p = (PlayerEntity) (Object) this;
