@@ -12,7 +12,7 @@ import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.skds.lonely.inventory.EContainer;
-import net.skds.lonely.util.extended.EPlayerInventory;
+import net.skds.lonely.inventory.EPlayerInventory;
 
 @Mixin(Slot.class)
 public abstract class SlotMixin {

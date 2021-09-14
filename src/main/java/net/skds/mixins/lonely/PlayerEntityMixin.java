@@ -17,7 +17,7 @@ import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.skds.lonely.util.extended.EPlayerInventory;
+import net.skds.lonely.inventory.EPlayerInventory;
 import net.skds.lonely.util.hooks.PlayerHooks;
 
 @Mixin(PlayerEntity.class)

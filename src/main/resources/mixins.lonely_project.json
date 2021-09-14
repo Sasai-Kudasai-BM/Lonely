@@ -18,6 +18,7 @@
 
 
     
+    "lonely.EntityRendererManagerMixin",
     "lonely.ContainerScreenInvoker",
     "lonely.PlayerInventoryMixin",
     "lonely.SlotMixin",

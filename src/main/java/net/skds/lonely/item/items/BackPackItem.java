@@ -1,7 +1,10 @@
 package net.skds.lonely.item.items;
 
 import net.minecraft.item.Item;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.skds.lonely.client.render.LonelyItemRenderer;
+import net.skds.lonely.client.render.renderers.BackpackRenderer;
 import net.skds.lonely.item.ILonelyItem;
 import net.skds.lonely.reg.RegItems;
 
@@ -26,8 +29,9 @@ public class BackpackItem extends Item implements ILonelyItem {
 	}
 
 	@Override
+	@OnlyIn(Dist.CLIENT)
 	public LonelyItemRenderer<BackpackItem> getRenderer() {
-		return null;
+		return BackpackRenderer.get();
 	}
 	
 	@Override

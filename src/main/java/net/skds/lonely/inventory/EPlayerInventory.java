@@ -1,12 +1,18 @@
-package net.skds.lonely.util.extended;
+package net.skds.lonely.inventory;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
+import net.minecraft.util.NonNullList;
 import net.minecraft.world.World;
 
 public class EPlayerInventory extends PlayerInventory {
+
+	public final NonNullList<ItemStack> equipmentSlots = NonNullList.withSize(EquipmentLayer.values().length,
+			ItemStack.EMPTY);
 
 	public EPlayerInventory(PlayerEntity playerIn) {
 		super(playerIn);
@@ -34,11 +40,9 @@ public class EPlayerInventory extends PlayerInventory {
 
 	@Override
 	public ItemStack getStackInSlot(int index) {
-		//if (isLonely()) {
-		//	if (index == 40) {
-		//		index = 1;
-		//	}
-		//}
+		if (isLonely() && index >= 10 && index < 10 + EquipmentLayer.values().length) {
+			return equipmentSlots.get(index - 10);
+		}
 		return super.getStackInSlot(index);
 	}
 
@@ -87,8 +91,12 @@ public class EPlayerInventory extends PlayerInventory {
 	@Override
 	public void setInventorySlotContents(int index, ItemStack stack) {
 		if (player.world.isRemote) {
-
 			//System.out.println(stack);
+		}
+		
+		if (isLonely() && index >= 10 && index < 10 + EquipmentLayer.values().length) {
+			equipmentSlots.set(index - 10, stack);
+			return;
 		}
 		if (isLonely() && !(index >= -1 && index < 2)) {
 			if (stack.getItem() == Items.BARRIER) {
@@ -116,11 +124,6 @@ public class EPlayerInventory extends PlayerInventory {
 
 	@Override
 	public int getFirstEmptyStack() {
-		//int slot = super.getFirstEmptyStack();
-		//if (isLonely() && !(slot >= -1 && slot < 2)) {
-		//	slot = -1;
-		//}
-		//return slot;
 		return super.getFirstEmptyStack();
 	}
 
@@ -149,5 +152,39 @@ public class EPlayerInventory extends PlayerInventory {
 	@Override
 	public int storeItemStack(ItemStack itemStackIn) {
 		return super.storeItemStack(itemStackIn);
+	}
+
+	@Override
+	public ListNBT write(ListNBT nbtTagListIn) {
+		if (isLonely()) {
+			for (int i = 0; i < this.equipmentSlots.size(); ++i) {
+				if (!this.equipmentSlots.get(i).isEmpty()) {
+					CompoundNBT compoundnbt = new CompoundNBT();
+					compoundnbt.putByte("Slot", (byte) (i + 10));
+					this.equipmentSlots.get(i).write(compoundnbt);
+					nbtTagListIn.add(compoundnbt);
+				}
+			}
+		}
+		return super.write(nbtTagListIn);
+	}
+
+	@Override
+	public void read(ListNBT nbtTagListIn) {
+		if (isLonely()) {
+			equipmentSlots.clear();
+
+			for (int i = 0; i < nbtTagListIn.size(); ++i) {
+				CompoundNBT compoundnbt = nbtTagListIn.getCompound(i);
+				int j = compoundnbt.getByte("Slot") & 255;
+				if (j >= 10 && j < 10 + EquipmentLayer.values().length) {
+					ItemStack itemstack = ItemStack.read(compoundnbt);
+					if (!itemstack.isEmpty()) {
+						equipmentSlots.set(j - 10, itemstack);
+					}
+				}
+			}
+		}
+		super.read(nbtTagListIn);
 	}
 }
