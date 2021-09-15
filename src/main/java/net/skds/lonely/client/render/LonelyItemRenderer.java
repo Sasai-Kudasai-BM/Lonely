@@ -3,7 +3,9 @@ package net.skds.lonely.client.render;
 import com.mojang.blaze3d.matrix.MatrixStack;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.player.AbstractClientPlayerEntity;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.entity.model.PlayerModel;
 import net.minecraft.client.renderer.model.ItemCameraTransforms.TransformType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -22,7 +24,7 @@ public abstract class LonelyItemRenderer<T extends Item & ILonelyItem> {
 
 	public abstract void render(ItemStack stack, TransformType trans, MatrixStack matrixStack, IRenderTypeBuffer buffer, int combinedLight, int combinedOverlay, float partialTicks);
 
-	public void render(ItemStack stack, TransformType trans, MatrixStack matrixStack, IRenderTypeBuffer buffer, int combinedLight, int combinedOverlay, float partialTicks, int eqSlot, PlayerEntity player) {
+	public void renderOnPlayer(ItemStack stack, TransformType trans, MatrixStack matrixStack, IRenderTypeBuffer buffer, int combinedLight, int combinedOverlay, float partialTicks, int eqSlot, PlayerEntity player, PlayerModel<AbstractClientPlayerEntity> model) {
 		render(stack, trans, matrixStack, buffer, combinedLight, combinedOverlay, partialTicks);
 	}
 }

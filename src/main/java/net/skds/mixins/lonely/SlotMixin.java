@@ -26,6 +26,7 @@ public abstract class SlotMixin {
 
 	private int xPosOld = 0;
 
+	@SuppressWarnings("unused")
 	private static final ItemStack baaad = new ItemStack(Items.BARRIER);
 
 	@Inject(method = "<init>", at = @At("TAIL"))

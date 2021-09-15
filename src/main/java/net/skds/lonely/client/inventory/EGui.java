@@ -1,6 +1,7 @@
 package net.skds.lonely.client.inventory;
 
 import java.util.Iterator;
+import java.util.Optional;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -9,6 +10,7 @@ import com.mojang.blaze3d.vertex.IVertexBuilder;
 import org.lwjgl.opengl.GL11C;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.player.AbstractClientPlayerEntity;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
@@ -16,6 +18,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
+import net.minecraft.client.renderer.entity.model.PlayerModel;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -35,7 +38,10 @@ import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
+import net.skds.core.util.other.collision.OBB;
 import net.skds.lonely.Lonely;
+import net.skds.lonely.client.bbreader.BBParser;
+import net.skds.lonely.client.render.renderers.EPlayerRenderer;
 import net.skds.lonely.inventory.EContainer;
 import net.skds.mixins.lonely.ContainerScreenInvoker;
 
@@ -90,7 +96,7 @@ public class EGui extends ContainerScreen<EContainer> {
 		final float dec = 0.8F;
 		bodyPitchV *= dec;
 		bodyYawV *= dec;
-		
+
 		super.tick();
 	}
 
@@ -141,7 +147,6 @@ public class EGui extends ContainerScreen<EContainer> {
 		this.renderHoveredTooltip(matrixStack, mouseX, mouseY);
 		this.oldMouseX = (float) mc.mouseHelper.getMouseX();
 		this.oldMouseY = (float) mc.mouseHelper.getMouseY();
-
 
 		RenderSystem.popMatrix();
 		//RenderSystem.fog(2918, 1.0F, 1.0F, 1.0F, 1.0F);
@@ -211,23 +216,11 @@ public class EGui extends ContainerScreen<EContainer> {
 
 		Quaternion quaternion = new Quaternion(Vector3f.ZP, 180, true);
 		quaternion.multiply(new Quaternion(Vector3f.YP, player.getYaw(partialTicks) + 180, true));
-		
+
 		matrixStack2.rotate(quaternion);
-		
 
-		//System.out.println(v);
-		//Quat pp = new Quat(Vec3.XP, 30, true);
-		//OBB obb = new OBB(prikol.offset(prikol.getCenter().scale(-1)), new Matrix3(pp), new Vec3(prikol.getCenter()));
-
-		//IVertexBuilder buffer = mc.getRenderTypeBuffers().getBufferSource().getBuffer(RenderType.LINES);
-		//WorldRenderer.drawBoundingBox(matrixStack2, buffer, new AxisAlignedBB(-0.25, 0.75, -0.15, 0.25, 1.3, -0.4), 0, 1, 0, 1);
-
-		//========================================================
-		//obb.render(matrixStack2.getLast().getMatrix(), buffer, 1, 1, 0, 1);
-		//========================================================
-		
 		if (clickBody >= 0) {
-			clickBodyPlace(matrixStack2, mouseX, mouseY, clickBody);
+			clickBodyPlace(matrixStack2, mouseX, mouseY, clickBody, partialTicks);
 			clickBody = -1;
 		}
 
@@ -387,9 +380,29 @@ public class EGui extends ContainerScreen<EContainer> {
 		return super.mouseReleased(mouseX, mouseY, button);
 	}
 
-	private void clickBodyPlace(MatrixStack matrixStack, int mouseX, int mouseY, int button) {
+	private void clickBodyPlace(MatrixStack matrixStack, int mouseX, int mouseY, int button, float partialTicks) {
 		matrixStack.push();
-		matrixStack.rotate(new Quaternion(Vector3f.YN, playerInventory.player.renderYawOffset, true));
+		AbstractClientPlayerEntity player = (AbstractClientPlayerEntity) playerInventory.player;
+		matrixStack.rotate(new Quaternion(Vector3f.YN, player.renderYawOffset, true));
+		EPlayerRenderer renderer = (EPlayerRenderer) (Object) mc.getRenderManager().getRenderer(playerInventory.player);
+
+		renderer.setModelVisibilities(player);
+		renderer.applyRotationsC(player, matrixStack, player.ticksExisted, 0, partialTicks);
+		
+		PlayerModel<AbstractClientPlayerEntity> model = renderer.getEntityModel();
+		model.setRotationAngles(player, player.limbSwing, player.limbSwingAmount, player.ticksExisted, player.getYaw(partialTicks), player.getPitch(partialTicks));
+
+		Quaternion q = new Quaternion(Vector3f.ZP, model.bipedBody.rotateAngleZ, false);
+		q.multiply(new Quaternion(Vector3f.YP, model.bipedBody.rotateAngleY, false));
+		q.multiply(new Quaternion(Vector3f.XP, model.bipedBody.rotateAngleX, false));
+		float f = 1F / 1.066666F;
+		matrixStack.scale(f, f, f);
+		matrixStack.translate(0.0D - (model.bipedBody.rotationPointX / 16.0F), 1.501F - (model.bipedBody.rotationPointY / 16.0F), 0.0D - (model.bipedBody.rotationPointZ / 16.0F));
+		//matrixStack.translate(0.0D , 1.501F, 0.0D);
+		q.conjugate();
+		matrixStack.rotate(q);
+		matrixStack.translate(0.0D, -1.501F, 0.0D);
+
 
 		float x0 = mouseX;
 		float y0 = mouseY;
@@ -414,16 +427,14 @@ public class EGui extends ContainerScreen<EContainer> {
 		vf1.transform(matrix3f);
 		vf2.transform(matrix3f);
 
-		
-		//Quat pp = new Quat(Vec3.XP, 30, true);
-		//OBB obb = new OBB(prikol.offset(prikol.getCenter().scale(-1)), new Matrix3(pp), new Vec3(prikol.getCenter()));
+		for (OBB obb : BBParser.get("lonely:bbmodels/prikol.bbmodel")) {
 
-		//Optional<Vector3d> op = obb.rayTrace(vf1, vf2);
-		//Optional<Vector3d> op = prikol.rayTrace(new Vector3d(vf1), new Vector3d(vf2));
-		//if (op.isPresent()) {
-		//	Vector3d rt = op.get();
-		//	System.out.println(rt);
-		//}
+			Optional<Vector3d> op = obb.rayTrace(vf1, vf2);
+			if (op.isPresent()) {
+				Vector3d rt = op.get();
+				System.out.println(obb.name + " " + rt);
+			}
+		}
 
 		matrixStack.pop();
 	}

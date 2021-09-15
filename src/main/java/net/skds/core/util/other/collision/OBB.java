@@ -23,7 +23,14 @@ public class OBB {
 
 	public final Matrix3 matrix;
 
+	public final String name;
+
 	public OBB(AxisAlignedBB aabb, Matrix3 matrix, Vec3 center) {
+		this(aabb, matrix, center, "unnamed");
+	}
+
+	public OBB(AxisAlignedBB aabb, Matrix3 matrix, Vec3 center, String name) {
+		this.name = name;
 		this.aabbInitial = aabb;
 		this.matrix = matrix.copy();
 		Vec3[] norms = new Vec3[6];
@@ -35,24 +42,26 @@ public class OBB {
 		norms[5] = norms[2].inverse();
 		normals = norms;
 
-		Vec3 aabbC = new Vec3(aabb.getCenter());
+		//Vec3 aabbC = new Vec3(aabb.getCenter());
+		Vec3 c2 = center.transform(matrix).subtract(center);
 		this.center = center;
 
 		Vec3[] points = new Vec3[8];
-		points[0] = new Vec3(aabb.maxX, aabb.maxY, aabb.maxZ).subtract(aabbC).transform(matrix).add(center);
-		points[1] = new Vec3(aabb.maxX, aabb.maxY, aabb.minZ).subtract(aabbC).transform(matrix).add(center);
-		points[2] = new Vec3(aabb.maxX, aabb.minY, aabb.maxZ).subtract(aabbC).transform(matrix).add(center);
-		points[3] = new Vec3(aabb.maxX, aabb.minY, aabb.minZ).subtract(aabbC).transform(matrix).add(center);
-		points[4] = new Vec3(aabb.minX, aabb.maxY, aabb.maxZ).subtract(aabbC).transform(matrix).add(center);
-		points[5] = new Vec3(aabb.minX, aabb.maxY, aabb.minZ).subtract(aabbC).transform(matrix).add(center);
-		points[6] = new Vec3(aabb.minX, aabb.minY, aabb.maxZ).subtract(aabbC).transform(matrix).add(center);
-		points[7] = new Vec3(aabb.minX, aabb.minY, aabb.minZ).subtract(aabbC).transform(matrix).add(center);
+		points[0] = new Vec3(aabb.maxX, aabb.maxY, aabb.maxZ).transform(matrix).subtract(c2);
+		points[1] = new Vec3(aabb.maxX, aabb.maxY, aabb.minZ).transform(matrix).subtract(c2);
+		points[2] = new Vec3(aabb.maxX, aabb.minY, aabb.maxZ).transform(matrix).subtract(c2);
+		points[3] = new Vec3(aabb.maxX, aabb.minY, aabb.minZ).transform(matrix).subtract(c2);
+		points[4] = new Vec3(aabb.minX, aabb.maxY, aabb.maxZ).transform(matrix).subtract(c2);
+		points[5] = new Vec3(aabb.minX, aabb.maxY, aabb.minZ).transform(matrix).subtract(c2);
+		points[6] = new Vec3(aabb.minX, aabb.minY, aabb.maxZ).transform(matrix).subtract(c2);
+		points[7] = new Vec3(aabb.minX, aabb.minY, aabb.minZ).transform(matrix).subtract(c2);
 		this.points = points;
 
 		this.aabb = getAABB();
 	}
 
 	public OBB(AxisAlignedBB aabb) {
+		this.name = "unnamed";
 		this.aabbInitial = aabb;
 		this.matrix = new Matrix3();
 		this.center = new Vec3(aabb.getCenter());
@@ -90,7 +99,8 @@ public class OBB {
 	public Optional<Vector3d> rayTrace(Vec3 from, Vec3 to) {
 		Matrix3 matrix3 = matrix.copy();
 		matrix3.transpose();
-		return aabbInitial.rayTrace(from.subtract(center).transform(matrix3).getMojangD(), to.subtract(center).transform(matrix3).getMojangD());
+		Vec3 c2 = center.transform(matrix3).subtract(center);
+		return aabbInitial.rayTrace(from.transform(matrix3).subtract(c2).getMojangD(), to.transform(matrix3).subtract(c2).getMojangD());
 	}
 
 	@OnlyIn(Dist.CLIENT)

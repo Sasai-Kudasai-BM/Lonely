@@ -15,6 +15,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.resource.IResourceType;
 import net.minecraftforge.resource.ISelectiveResourceReloadListener;
 import net.skds.lonely.Lonely;
+import net.skds.lonely.client.bbreader.BBParser;
 import net.skds.lonely.client.inventory.EGui;
 import net.skds.lonely.client.models.LModelLoader;
 import net.skds.lonely.client.models.ModelReg;
@@ -42,6 +43,7 @@ public class ClientEventsModBus {
 		public void onResourceManagerReload(IResourceManager resourceManager,
 				Predicate<IResourceType> resourcePredicate) {
 			LModelLoader.INSTANCE.onResourceManagerReload(resourceManager);
+			BBParser.read();
 		}
 	};
 
