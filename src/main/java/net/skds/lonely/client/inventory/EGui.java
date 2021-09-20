@@ -40,9 +40,9 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
 import net.skds.core.util.other.collision.OBB;
 import net.skds.lonely.Lonely;
-import net.skds.lonely.client.bbreader.BBParser;
 import net.skds.lonely.client.render.renderers.EPlayerRenderer;
 import net.skds.lonely.inventory.EContainer;
+import net.skds.lonely.inventory.EPlayerInventory;
 import net.skds.mixins.lonely.ContainerScreenInvoker;
 
 @SuppressWarnings("deprecation")
@@ -382,60 +382,50 @@ public class EGui extends ContainerScreen<EContainer> {
 
 	private void clickBodyPlace(MatrixStack matrixStack, int mouseX, int mouseY, int button, float partialTicks) {
 		matrixStack.push();
+		EPlayerInventory invent = (EPlayerInventory) playerInventory;
 		AbstractClientPlayerEntity player = (AbstractClientPlayerEntity) playerInventory.player;
 		matrixStack.rotate(new Quaternion(Vector3f.YN, player.renderYawOffset, true));
 		EPlayerRenderer renderer = (EPlayerRenderer) (Object) mc.getRenderManager().getRenderer(playerInventory.player);
 
-		renderer.setModelVisibilities(player);
+		renderer.setModelVisibilitiesC(player);
 		renderer.applyRotationsC(player, matrixStack, player.ticksExisted, 0, partialTicks);
-		
 		PlayerModel<AbstractClientPlayerEntity> model = renderer.getEntityModel();
 		model.setRotationAngles(player, player.limbSwing, player.limbSwingAmount, player.ticksExisted, player.getYaw(partialTicks), player.getPitch(partialTicks));
-
-		Quaternion q = new Quaternion(Vector3f.ZP, model.bipedBody.rotateAngleZ, false);
-		q.multiply(new Quaternion(Vector3f.YP, model.bipedBody.rotateAngleY, false));
-		q.multiply(new Quaternion(Vector3f.XP, model.bipedBody.rotateAngleX, false));
-		float f = 1F / 1.066666F;
-		matrixStack.scale(f, f, f);
-		matrixStack.translate(0.0D - (model.bipedBody.rotationPointX / 16.0F), 1.501F - (model.bipedBody.rotationPointY / 16.0F), 0.0D - (model.bipedBody.rotationPointZ / 16.0F));
-		//matrixStack.translate(0.0D , 1.501F, 0.0D);
-		q.conjugate();
-		matrixStack.rotate(q);
-		matrixStack.translate(0.0D, -1.501F, 0.0D);
-
 
 		float x0 = mouseX;
 		float y0 = mouseY;
 		x0 -= this.guiLeft + (xSize / 2);
 		y0 -= this.guiTop + ySize - 20;
-
 		x0 /= 60;
 		y0 /= 60;
-		Matrix3f matrix3f = matrixStack.getLast().getNormal();
-		matrix3f.transpose();
-		Matrix4f matrix4f = matrixStack.getLast().getMatrix();
 
-		TransformationMatrix transformationMatrix = new TransformationMatrix(matrix4f);
+		for (BodyPart part : renderer.parts.values()) {
+			matrixStack.push();
+			part.reverseRotationAndPos(matrixStack);
+			Matrix3f matrix3f = matrixStack.getLast().getNormal().copy();
+			matrix3f.transpose();
+			Matrix4f matrix4f = matrixStack.getLast().getMatrix();
+			TransformationMatrix transformationMatrix = new TransformationMatrix(matrix4f);
+			Vector3f trans = transformationMatrix.getTranslation();
+			trans.mul(1F / 60);
+			Vector3f vf1 = new Vector3f(x0, y0, 100);
+			Vector3f vf2 = new Vector3f(x0, y0, -100);
+			vf1.sub(trans);
+			vf2.sub(trans);
+			vf1.transform(matrix3f);
+			vf2.transform(matrix3f);
 
-		Vector3f trans = transformationMatrix.getTranslation();
-		trans.mul(1F / 60);
 
-		Vector3f vf1 = new Vector3f(x0, y0, 100);
-		Vector3f vf2 = new Vector3f(x0, y0, -100);
-		vf1.sub(trans);
-		vf2.sub(trans);
-		vf1.transform(matrix3f);
-		vf2.transform(matrix3f);
-
-		for (OBB obb : BBParser.get("lonely:bbmodels/prikol.bbmodel")) {
-
-			Optional<Vector3d> op = obb.rayTrace(vf1, vf2);
-			if (op.isPresent()) {
-				Vector3d rt = op.get();
-				System.out.println(obb.name + " " + rt);
+			for (OBB obb : invent.getForSpecRender(part.segment)) {			
+				Optional<Vector3d> op = obb.rayTrace(vf1, vf2);
+				if (op.isPresent()) {
+					Vector3d rt = op.get();
+					System.out.println(obb.name + " " + rt);
+				}
 			}
-		}
 
+			matrixStack.pop();
+		}
 		matrixStack.pop();
 	}
 

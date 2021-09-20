@@ -1,18 +1,21 @@
 package net.skds.lonely.client.render.renderers;
 
+import java.util.Collections;
+import java.util.List;
+
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 
-import net.minecraft.client.entity.player.AbstractClientPlayerEntity;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.entity.model.PlayerModel;
 import net.minecraft.client.renderer.model.ItemCameraTransforms.TransformType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.skds.core.util.other.collision.OBB;
+import net.skds.lonely.client.inventory.BodyPart;
+import net.skds.lonely.client.inventory.BodyPart.Segment;
 import net.skds.lonely.client.models.ModelReg;
 import net.skds.lonely.client.render.LonelyItemRenderer;
 import net.skds.lonely.item.items.BackpackItem;
@@ -42,8 +45,10 @@ public class BackpackRenderer extends LonelyItemRenderer<BackpackItem> {
 
 	@Override
 	public void renderOnPlayer(ItemStack stack, TransformType trans, MatrixStack matrixStack, IRenderTypeBuffer buffer,
-			int combinedLight, int combinedOverlay, float partialTicks, int eqSlot, PlayerEntity player, PlayerModel<AbstractClientPlayerEntity> model) {
+			int combinedLight, int combinedOverlay, float partialTicks, int eqSlot, PlayerEntity player, EPlayerRenderer renderer) {
 		matrixStack.push();
+
+		renderer.parts.get(BodyPart.Segment.BODY).applyRotationAndPos(matrixStack);
 
 		BackpackItem backpackItem = (BackpackItem) stack.getItem();
 
@@ -55,5 +60,16 @@ public class BackpackRenderer extends LonelyItemRenderer<BackpackItem> {
 		
 		render(stack, trans, matrixStack, buffer, combinedLight, combinedOverlay, partialTicks);
 		matrixStack.pop();
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public List<OBB> getClickBoxes4Segment(ItemStack stack, PlayerEntity player, Segment segment) {
+		if (segment == Segment.BODY) {
+			BackpackItem backpackItem = (BackpackItem) stack.getItem();
+			return backpackItem.getClickBoxes();
+		} else {
+			return Collections.EMPTY_LIST;
+		}
 	}
 }

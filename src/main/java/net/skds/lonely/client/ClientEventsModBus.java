@@ -35,6 +35,8 @@ public class ClientEventsModBus {
 	@SubscribeEvent
 	public static void modelBake(ModelBakeEvent e) {
 		LModelLoader.INSTANCE.bakeModels();
+		
+		//LModelLoader.INSTANCE.onResourceManagerReload(Minecraft.getInstance().getResourceManager());
 	}
 
 	
