@@ -59,7 +59,7 @@ public class DebugEntity extends OBBBodyEntity {
 	@Override
 	public List<OBB> getBoxes() {
 		List<OBB> list = new ArrayList<>();
-		list.add(new OBB(getBoundingBox()));
+		list.add(OBB.create(getBoundingBox()));
 		return list;
 	}
 }

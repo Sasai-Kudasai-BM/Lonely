@@ -29,7 +29,7 @@ public abstract class OBBBodyEntity extends Entity implements IOBBEntity {
 	@Override
 	public List<OBB> getBoxes() {
 		List<OBB> list = new ArrayList<>();
-		list.add(new OBB(getBoundingBox()));
+		list.add(OBB.create(getBoundingBox()));
 		return list;
 	}
 

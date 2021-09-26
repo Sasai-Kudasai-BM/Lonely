@@ -1,6 +1,9 @@
 package net.skds.lonely.client.render.renderers;
 
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.mojang.blaze3d.matrix.MatrixStack;
 
 import net.minecraft.client.Minecraft;
@@ -13,7 +16,12 @@ import net.minecraft.client.renderer.model.ItemCameraTransforms.TransformType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.math.vector.Matrix3f;
+import net.minecraft.util.math.vector.Matrix4f;
+import net.skds.core.util.other.Pair;
+import net.skds.lonely.client.inventory.BodyPart;
 import net.skds.lonely.inventory.EPlayerInventory;
+import net.skds.lonely.inventory.EquipmentLayer;
 import net.skds.lonely.item.ILonelyItem;
 
 public class EquipmentLayerRenderer<T extends PlayerEntity, M extends PlayerModel<T> & IHasArm>
@@ -22,6 +30,19 @@ public class EquipmentLayerRenderer<T extends PlayerEntity, M extends PlayerMode
 	@SuppressWarnings("unused")
 	private static final Minecraft mc = Minecraft.getInstance();
 	private final EPlayerRenderer playerRenderer;
+
+	public static final int size = EquipmentLayer.values().length;
+
+	private static final Map<BodyPart.Segment, Pair<Matrix3f, Matrix4f>> transformation = new HashMap<>();
+
+	public static void setTransform(BodyPart.Segment segment, MatrixStack.Entry entry) {
+		transformation.put(segment, new Pair<Matrix3f, Matrix4f>(entry.getNormal().copy(), entry.getMatrix().copy()));
+	}
+
+	public static Pair<Matrix3f, Matrix4f> getTransform(BodyPart.Segment segment) {
+		Pair<Matrix3f, Matrix4f> pair = transformation.get(segment);
+		return pair;
+	}
 
 	@SuppressWarnings("unchecked")
 	public EquipmentLayerRenderer(EPlayerRenderer playerRenderer) {
@@ -36,25 +57,18 @@ public class EquipmentLayerRenderer<T extends PlayerEntity, M extends PlayerMode
 		if (!inventory.isLonely()) {
 			return;
 		}
-		//System.out.println(inventory.equipmentSlots);
-		int s = inventory.equipmentSlots.size();
-		for (int i = 0; i < s; i++) {
+		for (BodyPart part : playerRenderer.parts) {
+			matrixStack.push();
+			part.applyRotationAndPos(matrixStack);
+			setTransform(part.segment, matrixStack.getLast());
+			matrixStack.pop();
+		}
+		for (int i = 0; i < size; i++) {
 			ItemStack stack = inventory.equipmentSlots.get(i);
 			if (!stack.isEmpty()) {
 				if (stack.getItem() instanceof ILonelyItem) {
 					ILonelyItem lonelyItem = (ILonelyItem) stack.getItem();
 					matrixStack.push();
-					//PlayerModel<AbstractClientPlayerEntity> model = playerRenderer.getEntityModel();
-
-					
-					//matrixStack.translate(model.bipedBody.rotationPointX / 16.0F, model.bipedBody.rotationPointY / 16.0F, model.bipedBody.rotationPointZ / 16.0F);
-					//Quaternion q = new Quaternion(Vector3f.ZP, model.bipedBody.rotateAngleZ, false);
-					//q.multiply(new Quaternion(Vector3f.YP, model.bipedBody.rotateAngleY, false));
-					//q.multiply(new Quaternion(Vector3f.XP, model.bipedBody.rotateAngleX, false));
-					//matrixStack.rotate(q);
-					//matrixStack.translate(0.0D, 1.501F, 0.0D);
-					//float f = 1.066666F;
-					//matrixStack.scale(-f, -f, f);
 					lonelyItem.getRenderer().renderOnPlayer(stack, TransformType.NONE, matrixStack, buffer, packedLight,
 							OverlayTexture.NO_OVERLAY, partialTicks, i, player, playerRenderer);
 					matrixStack.pop();

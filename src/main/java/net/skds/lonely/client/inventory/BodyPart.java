@@ -1,6 +1,6 @@
 package net.skds.lonely.client.inventory;
 
-import java.util.Map;
+import java.util.List;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 
@@ -24,9 +24,9 @@ public class BodyPart {
 		this.segment = segment;
 	}
 
-	public static BodyPart create(Segment segment, PlayerModel<AbstractClientPlayerEntity> model, Map<Segment, BodyPart> map) {
+	public static BodyPart create(Segment segment, PlayerModel<AbstractClientPlayerEntity> model, List<BodyPart> map) {
 		BodyPart part = new BodyPart(segment, model);
-		map.put(segment, part);
+		map.add(part);
 		return part;
 	}
 
@@ -59,28 +59,7 @@ public class BodyPart {
 		q.multiply(new Quaternion(Vector3f.YP, part.rotateAngleY, false));
 		q.multiply(new Quaternion(Vector3f.XP, part.rotateAngleX, false));
 		matrixStack.rotate(q);
-		matrixStack.translate(0.0D, 1.501F, 0.0D);
-		float f = 1.066666F;
-		matrixStack.scale(-f, -f, f);
-
 	}
-	public void reverseRotationAndPos(MatrixStack matrixStack) {
-		ModelRenderer part = getPart();
-		
-		Quaternion q = new Quaternion(Vector3f.ZP, part.rotateAngleZ, false);
-		q.multiply(new Quaternion(Vector3f.YP, part.rotateAngleY, false));
-		q.multiply(new Quaternion(Vector3f.XP, part.rotateAngleX, false));
-		float f = 1F / 1.066666F;
-		matrixStack.scale(f, f, f);
-		matrixStack.translate(0.0D - (part.rotationPointX / 16.0F), 1.501F - (part.rotationPointY / 16.0F), 0.0D - (part.rotationPointZ / 16.0F));
-		q.conjugate();
-		matrixStack.rotate(q);
-		matrixStack.translate(0.0D, -1.501F, 0.0D);
-
-		//System.out.println(part.rotationPointX + " " + segment.toString());
-
-	}
-	
 	
 	public static enum Segment {
 		HEAD,

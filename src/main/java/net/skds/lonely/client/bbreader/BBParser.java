@@ -94,7 +94,7 @@ public class BBParser {
 			}
 			Vec3 center = new Vec3(origin.get(0).getAsDouble() / 16, origin.get(1).getAsDouble() / 16, origin.get(2).getAsDouble() / 16);
 
-			list.add(new OBB(aabb, matrix3, center, name));
+			list.add(OBB.create(aabb, matrix3, center, name));
 
 		});
 
@@ -104,7 +104,7 @@ public class BBParser {
 	static {
 		empty = new ArrayList<>();
 		AxisAlignedBB aabb = new AxisAlignedBB(-.5, -.5, -.5, .5, .5, .5);
-		OBB obb = new OBB(aabb);
+		OBB obb = OBB.create(aabb);
 		empty.add(obb);
 	}
 

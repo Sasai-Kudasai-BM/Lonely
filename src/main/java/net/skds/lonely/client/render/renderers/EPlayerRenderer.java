@@ -1,7 +1,7 @@
 package net.skds.lonely.client.render.renderers;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 
@@ -21,7 +21,7 @@ public class EPlayerRenderer extends PlayerRenderer {
 
 	@SuppressWarnings("unused")
 	private static final Minecraft mc = Minecraft.getInstance();
-	public final Map<BodyPart.Segment, BodyPart> parts = new HashMap<>();
+	public final List<BodyPart> parts = new ArrayList<>();
 
 	public EPlayerRenderer(EntityRendererManager renderManager, boolean useSmallArms) {
 		super(renderManager, useSmallArms);

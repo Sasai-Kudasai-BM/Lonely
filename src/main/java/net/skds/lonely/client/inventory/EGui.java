@@ -1,7 +1,6 @@
 package net.skds.lonely.client.inventory;
 
 import java.util.Iterator;
-import java.util.Optional;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -18,7 +17,6 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
-import net.minecraft.client.renderer.entity.model.PlayerModel;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -27,6 +25,8 @@ import net.minecraft.inventory.container.ClickType;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SoundCategory;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.shapes.VoxelShape;
@@ -38,9 +38,12 @@ import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
+import net.skds.core.util.mat.Vec3;
+import net.skds.core.util.other.Pair;
 import net.skds.core.util.other.collision.OBB;
 import net.skds.lonely.Lonely;
 import net.skds.lonely.client.render.renderers.EPlayerRenderer;
+import net.skds.lonely.client.render.renderers.EquipmentLayerRenderer;
 import net.skds.lonely.inventory.EContainer;
 import net.skds.lonely.inventory.EPlayerInventory;
 import net.skds.mixins.lonely.ContainerScreenInvoker;
@@ -384,13 +387,8 @@ public class EGui extends ContainerScreen<EContainer> {
 		matrixStack.push();
 		EPlayerInventory invent = (EPlayerInventory) playerInventory;
 		AbstractClientPlayerEntity player = (AbstractClientPlayerEntity) playerInventory.player;
-		matrixStack.rotate(new Quaternion(Vector3f.YN, player.renderYawOffset, true));
 		EPlayerRenderer renderer = (EPlayerRenderer) (Object) mc.getRenderManager().getRenderer(playerInventory.player);
-
-		renderer.setModelVisibilitiesC(player);
-		renderer.applyRotationsC(player, matrixStack, player.ticksExisted, 0, partialTicks);
-		PlayerModel<AbstractClientPlayerEntity> model = renderer.getEntityModel();
-		model.setRotationAngles(player, player.limbSwing, player.limbSwingAmount, player.ticksExisted, player.getYaw(partialTicks), player.getPitch(partialTicks));
+		matrixStack.rotate(new Quaternion(Vector3f.YN, player.renderYawOffset, true));
 
 		float x0 = mouseX;
 		float y0 = mouseY;
@@ -398,29 +396,37 @@ public class EGui extends ContainerScreen<EContainer> {
 		y0 -= this.guiTop + ySize - 20;
 		x0 /= 60;
 		y0 /= 60;
+		
 
-		for (BodyPart part : renderer.parts.values()) {
+		for (BodyPart part : renderer.parts) {
 			matrixStack.push();
-			part.reverseRotationAndPos(matrixStack);
-			Matrix3f matrix3f = matrixStack.getLast().getNormal().copy();
+			Pair<Matrix3f, Matrix4f> pair = EquipmentLayerRenderer.getTransform(part.segment);
+			Matrix3f matrix3f = pair.a.copy();
 			matrix3f.transpose();
-			Matrix4f matrix4f = matrixStack.getLast().getMatrix();
+			Matrix4f matrix4f = pair.b;
 			TransformationMatrix transformationMatrix = new TransformationMatrix(matrix4f);
 			Vector3f trans = transformationMatrix.getTranslation();
-			trans.mul(1F / 60);
+			trans.mul(-1F / 60);
 			Vector3f vf1 = new Vector3f(x0, y0, 100);
 			Vector3f vf2 = new Vector3f(x0, y0, -100);
-			vf1.sub(trans);
-			vf2.sub(trans);
+			vf1.add(trans);
+			vf2.add(trans);
 			vf1.transform(matrix3f);
 			vf2.transform(matrix3f);
 
 
-			for (OBB obb : invent.getForSpecRender(part.segment)) {			
-				Optional<Vector3d> op = obb.rayTrace(vf1, vf2);
-				if (op.isPresent()) {
-					Vector3d rt = op.get();
-					System.out.println(obb.name + " " + rt);
+			for (OBB obb : invent.getForSpecRender(part.segment)) {	
+				
+				//AxisAlignedBB aabb = new AxisAlignedBB(-.5, -.5, -.5, .5, .5, .5);
+				//obb = OBB.create(aabb);
+
+				//vf1.set(1, 1, 1);
+				//vf2.set(-1, 0, 0);
+
+				Vec3 cross = obb.rayTrace(vf1, vf2);
+				if (cross != null) {
+					System.out.println(obb.name + " " + cross);
+					player.world.playSound(player.getPosX(), player.getPosY(), player.getPosZ(), SoundEvents.BLOCK_BAMBOO_BREAK, SoundCategory.AMBIENT, 1, 1, false);
 				}
 			}
 
