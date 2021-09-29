@@ -1,6 +1,5 @@
 package net.skds.lonely.client.render.renderers;
 
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,6 +17,8 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.vector.Matrix3f;
 import net.minecraft.util.math.vector.Matrix4f;
+import net.minecraft.util.math.vector.Quaternion;
+import net.minecraft.util.math.vector.Vector3f;
 import net.skds.core.util.other.Pair;
 import net.skds.lonely.client.inventory.BodyPart;
 import net.skds.lonely.inventory.EPlayerInventory;
@@ -32,16 +33,39 @@ public class EquipmentLayerRenderer<T extends PlayerEntity, M extends PlayerMode
 	private final EPlayerRenderer playerRenderer;
 
 	public static final int size = EquipmentLayer.values().length;
+	public static boolean inGui = false;
 
 	private static final Map<BodyPart.Segment, Pair<Matrix3f, Matrix4f>> transformation = new HashMap<>();
 
 	public static void setTransform(BodyPart.Segment segment, MatrixStack.Entry entry) {
-		transformation.put(segment, new Pair<Matrix3f, Matrix4f>(entry.getNormal().copy(), entry.getMatrix().copy()));
+		Quaternion q = new Quaternion(Vector3f.XP, 180, true);
+		Matrix3f matrix3f = entry.getNormal().copy();
+		Matrix4f matrix4f = entry.getMatrix().copy();
+		matrix3f.mul(q);
+		matrix4f.mul(q);
+		transformation.put(segment, new Pair<Matrix3f, Matrix4f>(matrix3f, matrix4f));
 	}
 
 	public static Pair<Matrix3f, Matrix4f> getTransform(BodyPart.Segment segment) {
 		Pair<Matrix3f, Matrix4f> pair = transformation.get(segment);
+		if (pair == null) {
+			Matrix3f matrix3f = new Matrix3f();
+			matrix3f.setIdentity();
+			Matrix4f matrix4f = new Matrix4f();
+			matrix4f.setIdentity();
+			pair = new Pair<Matrix3f,Matrix4f>(matrix3f, matrix4f);
+		}
 		return pair;
+	}
+
+	public static MatrixStack transform(BodyPart.Segment segment, MatrixStack matrixStack) {
+		Pair<Matrix3f, Matrix4f> pair = transformation.get(segment);
+		if (pair != null) {
+			MatrixStack.Entry ms2Entry = matrixStack.getLast();
+			ms2Entry.getNormal().mul(pair.a);
+			ms2Entry.getMatrix().mul(pair.b);
+		}
+		return matrixStack;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -57,11 +81,15 @@ public class EquipmentLayerRenderer<T extends PlayerEntity, M extends PlayerMode
 		if (!inventory.isLonely()) {
 			return;
 		}
-		for (BodyPart part : playerRenderer.parts) {
-			matrixStack.push();
-			part.applyRotationAndPos(matrixStack);
-			setTransform(part.segment, matrixStack.getLast());
-			matrixStack.pop();
+		if (inGui) {
+			for (BodyPart part : playerRenderer.parts) {
+				matrixStack.push();
+				float f = 1F / 0.9375F;
+				matrixStack.scale(f, f, f);
+				part.applyRotationAndPos(matrixStack);
+				setTransform(part.segment, matrixStack.getLast());
+				matrixStack.pop();
+			}
 		}
 		for (int i = 0; i < size; i++) {
 			ItemStack stack = inventory.equipmentSlots.get(i);

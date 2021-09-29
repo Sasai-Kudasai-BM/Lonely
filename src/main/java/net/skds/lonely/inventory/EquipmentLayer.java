@@ -40,4 +40,8 @@ public enum EquipmentLayer {
 	public boolean isOccupied(NonNullList<ItemStack> equipmentSlots) {
 		return !equipmentSlots.get(ordinal()).isEmpty();
 	}
+
+	public static EquipmentLayer get(int i) {
+		return values()[i];
+	}
 }

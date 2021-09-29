@@ -25,27 +25,24 @@ import net.minecraft.inventory.container.ClickType;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.vector.Matrix3f;
-import net.minecraft.util.math.vector.Matrix4f;
 import net.minecraft.util.math.vector.Quaternion;
-import net.minecraft.util.math.vector.TransformationMatrix;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
-import net.skds.core.util.mat.Vec3;
-import net.skds.core.util.other.Pair;
+import net.skds.core.network.PacketHandler;
 import net.skds.core.util.other.collision.OBB;
 import net.skds.lonely.Lonely;
-import net.skds.lonely.client.render.renderers.EPlayerRenderer;
+import net.skds.lonely.client.render.CustomRenderTypes;
 import net.skds.lonely.client.render.renderers.EquipmentLayerRenderer;
 import net.skds.lonely.inventory.EContainer;
 import net.skds.lonely.inventory.EPlayerInventory;
+import net.skds.lonely.inventory.EquipmentLayer;
+import net.skds.lonely.item.ILonelyEquipItem;
+import net.skds.lonely.network.EquipmentPacket;
 import net.skds.mixins.lonely.ContainerScreenInvoker;
 
 @SuppressWarnings("deprecation")
@@ -112,52 +109,58 @@ public class EGui extends ContainerScreen<EContainer> {
 	}
 
 	@Override
-	public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-		partialTicks = Minecraft.getInstance().getRenderPartialTicks();
-		rotateBody(matrixStack, mouseX, mouseY);
-		RenderSystem.pushMatrix();
+	public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks2) {
 
-		RenderSystem.enableDepthTest();
-		RenderSystem.translatef(0.0F, 0.0F, 1000.0F);
-		RenderSystem.colorMask(false, false, false, false);
-		fill(matrixStack, 4680, 2260, -4680, -2260, -16777216);
-		RenderSystem.colorMask(true, true, true, true);
-		RenderSystem.translatef(0.0F, 0.0F, -1000.0F);
-		RenderSystem.depthFunc(GL11C.GL_GEQUAL);
-		fill(matrixStack, guiLeft + winX0, guiTop + winY0, guiLeft + winX0 + winX1, guiTop + winY0 + winY1, -16777216);
-		RenderSystem.depthFunc(GL11C.GL_LEQUAL);
+		RenderSystem.runAsFancy(() -> {
 
-		RenderSystem.translatef(0.0F, 0.0F, 200.0F);
-		RenderSystem.disableDepthTest();
+			float partialTicks = Minecraft.getInstance().getRenderPartialTicks();
+			rotateBody(matrixStack, mouseX, mouseY);
+			RenderSystem.pushMatrix();
 
-		renderBlack(matrixStack);
-		renderGuiTexture(matrixStack, partialTicks);
-		renderBody(partialTicks, mouseX, mouseY);
+			RenderSystem.enableDepthTest();
+			RenderSystem.translatef(0.0F, 0.0F, 1000.0F);
+			RenderSystem.colorMask(false, false, false, false);
+			fill(matrixStack, 4680, 2260, -4680, -2260, -16777216);
+			RenderSystem.colorMask(true, true, true, true);
+			RenderSystem.translatef(0.0F, 0.0F, -1000.0F);
+			RenderSystem.depthFunc(GL11C.GL_GEQUAL);
+			fill(matrixStack, guiLeft + winX0, guiTop + winY0, guiLeft + winX0 + winX1, guiTop + winY0 + winY1,
+					-16777216);
+			RenderSystem.depthFunc(GL11C.GL_LEQUAL);
 
-		RenderSystem.enableDepthTest();
-		RenderSystem.depthFunc(GL11C.GL_GEQUAL);
-		RenderSystem.translatef(0.0F, 0.0F, -950.0F);
-		RenderSystem.colorMask(false, false, false, false);
-		fill(matrixStack, 4680, 2260, -4680, -2260, -16777216);
-		RenderSystem.colorMask(true, true, true, true);
-		RenderSystem.translatef(0.0F, 0.0F, 950.0F);
-		RenderSystem.depthFunc(GL11C.GL_LEQUAL);
-		RenderSystem.disableDepthTest();
+			RenderSystem.translatef(0.0F, 0.0F, 200.0F);
+			RenderSystem.disableDepthTest();
 
-		renderButtons(matrixStack, mouseX, mouseY, partialTicks);
-		renderHands(matrixStack, mouseX, mouseY, partialTicks);
-		renderItemOnCursor(playerInventory.getItemStack(), mouseX, mouseY);
-		this.renderHoveredTooltip(matrixStack, mouseX, mouseY);
-		this.oldMouseX = (float) mc.mouseHelper.getMouseX();
-		this.oldMouseY = (float) mc.mouseHelper.getMouseY();
+			renderBlack(matrixStack);
+			renderGuiTexture(matrixStack, partialTicks);
+			renderBody(partialTicks, mouseX, mouseY);
 
-		RenderSystem.popMatrix();
-		//RenderSystem.fog(2918, 1.0F, 1.0F, 1.0F, 1.0F);
-		//RenderSystem.fogStart(0.0F);
-		//RenderSystem.fogEnd(0.1F);
-		//RenderSystem.fogDensity(100.0F);
-		//RenderSystem.fogMode(FogMode.LINEAR);
-		//RenderSystem.setupNvFogDistance();
+			RenderSystem.enableDepthTest();
+			RenderSystem.depthFunc(GL11C.GL_GEQUAL);
+			RenderSystem.translatef(0.0F, 0.0F, -950.0F);
+			RenderSystem.colorMask(false, false, false, false);
+			fill(matrixStack, 4680, 2260, -4680, -2260, -16777216);
+			RenderSystem.colorMask(true, true, true, true);
+			RenderSystem.translatef(0.0F, 0.0F, 950.0F);
+			RenderSystem.depthFunc(GL11C.GL_LEQUAL);
+			RenderSystem.disableDepthTest();
+
+			renderButtons(matrixStack, mouseX, mouseY, partialTicks);
+			renderHands(matrixStack, mouseX, mouseY, partialTicks);
+			renderItemOnCursor(playerInventory.getItemStack(), mouseX, mouseY);
+			this.renderHoveredTooltip(matrixStack, mouseX, mouseY);
+			this.oldMouseX = (float) mc.mouseHelper.getMouseX();
+			this.oldMouseY = (float) mc.mouseHelper.getMouseY();
+
+			RenderSystem.popMatrix();
+			//RenderSystem.fog(2918, 1.0F, 1.0F, 1.0F, 1.0F);
+			//RenderSystem.fogStart(0.0F);
+			//RenderSystem.fogEnd(0.1F);
+			//RenderSystem.fogDensity(100.0F);
+			//RenderSystem.fogMode(FogMode.LINEAR);
+			//RenderSystem.setupNvFogDistance();
+			clickBody = -1;
+		});
 	}
 
 	public void renderBlack(MatrixStack matrixStack) {
@@ -195,6 +198,7 @@ public class EGui extends ContainerScreen<EContainer> {
 	}
 
 	protected void renderBody(float partialTicks, int mouseX, int mouseY) {
+		EquipmentLayerRenderer.inGui = true;
 		RenderSystem.pushMatrix();
 
 		final float scale = 60;
@@ -221,11 +225,10 @@ public class EGui extends ContainerScreen<EContainer> {
 		quaternion.multiply(new Quaternion(Vector3f.YP, player.getYaw(partialTicks) + 180, true));
 
 		matrixStack2.rotate(quaternion);
-
 		if (clickBody >= 0) {
 			clickBodyPlace(matrixStack2, mouseX, mouseY, clickBody, partialTicks);
-			clickBody = -1;
 		}
+
 
 		EntityRendererManager entityrenderermanager = mc.getRenderManager();
 		EntityRenderer<? super PlayerEntity> pr = entityrenderermanager.getRenderer(player);
@@ -234,8 +237,11 @@ public class EGui extends ContainerScreen<EContainer> {
 		pr.render(player, 0, partialTicks, matrixStack2, buffer2, 15728880);
 
 		buffer2.finish();
+		highlightBoxes(matrixStack2, mouseX, mouseY, partialTicks);
+		buffer2.finish();
 		entityrenderermanager.setRenderShadow(true);
 		RenderSystem.popMatrix();
+		EquipmentLayerRenderer.inGui = false;
 	}
 
 	protected void renderAmbient(float partialTicks, MatrixStack matrixStack, float offset) {
@@ -384,10 +390,19 @@ public class EGui extends ContainerScreen<EContainer> {
 	}
 
 	private void clickBodyPlace(MatrixStack matrixStack, int mouseX, int mouseY, int button, float partialTicks) {
+
+		if (button == 0) {
+			ClickOBBShape nearest = getHoveredObbShape(matrixStack, mouseX, mouseY, partialTicks);
+			if (nearest != null) {
+				System.out.println(nearest.layer);
+			}
+		}
+	}
+
+	private ClickOBBShape getHoveredObbShape(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
 		matrixStack.push();
 		EPlayerInventory invent = (EPlayerInventory) playerInventory;
 		AbstractClientPlayerEntity player = (AbstractClientPlayerEntity) playerInventory.player;
-		EPlayerRenderer renderer = (EPlayerRenderer) (Object) mc.getRenderManager().getRenderer(playerInventory.player);
 		matrixStack.rotate(new Quaternion(Vector3f.YN, player.renderYawOffset, true));
 
 		float x0 = mouseX;
@@ -396,43 +411,113 @@ public class EGui extends ContainerScreen<EContainer> {
 		y0 -= this.guiTop + ySize - 20;
 		x0 /= 60;
 		y0 /= 60;
-		
 
-		for (BodyPart part : renderer.parts) {
-			matrixStack.push();
-			Pair<Matrix3f, Matrix4f> pair = EquipmentLayerRenderer.getTransform(part.segment);
-			Matrix3f matrix3f = pair.a.copy();
-			matrix3f.transpose();
-			Matrix4f matrix4f = pair.b;
-			TransformationMatrix transformationMatrix = new TransformationMatrix(matrix4f);
-			Vector3f trans = transformationMatrix.getTranslation();
-			trans.mul(-1F / 60);
-			Vector3f vf1 = new Vector3f(x0, y0, 100);
-			Vector3f vf2 = new Vector3f(x0, y0, -100);
-			vf1.add(trans);
-			vf2.add(trans);
-			vf1.transform(matrix3f);
-			vf2.transform(matrix3f);
+		double min = Double.POSITIVE_INFINITY;
+		ClickOBBShape nearest = null;
 
-
-			for (OBB obb : invent.getForSpecRender(part.segment)) {	
-				
-				//AxisAlignedBB aabb = new AxisAlignedBB(-.5, -.5, -.5, .5, .5, .5);
-				//obb = OBB.create(aabb);
-
-				//vf1.set(1, 1, 1);
-				//vf2.set(-1, 0, 0);
-
-				Vec3 cross = obb.rayTrace(vf1, vf2);
-				if (cross != null) {
-					System.out.println(obb.name + " " + cross);
-					player.world.playSound(player.getPosX(), player.getPosY(), player.getPosZ(), SoundEvents.BLOCK_BAMBOO_BREAK, SoundCategory.AMBIENT, 1, 1, false);
-				}
+		for (ClickOBBShape clickShape : invent.getClickShapes()) {
+			double d = clickShape.hower(matrixStack, x0, y0);
+			if (d < min) {
+				min = d;
+				nearest = clickShape;
 			}
-
-			matrixStack.pop();
 		}
 		matrixStack.pop();
+		return nearest;
+	}
+
+	private void highlightBoxes(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+
+		EPlayerInventory invent = (EPlayerInventory) playerInventory;
+		ItemStack stack = invent.getItemStack();
+		if (stack.getItem() instanceof ILonelyEquipItem) {
+			ILonelyEquipItem iLEI = ((ILonelyEquipItem) stack.getItem());
+			for (EquipmentLayer layer : iLEI.getLayers(stack)) {
+				iLEI.getClickShapeList(stack, layer).forEach((shape) -> {
+					MatrixStack ms2 = EquipmentLayerRenderer.transform(shape.segment, new MatrixStack());
+					renderClickBox(ms2, mouseX, mouseY, partialTicks, shape);
+				});
+			}
+		}
+
+		if (invent.getItemStack().isEmpty()) {
+
+			ClickOBBShape howeredShape = getHoveredObbShape(matrixStack, mouseX, mouseY, partialTicks);
+			if (howeredShape != null) {
+				MatrixStack ms2 = EquipmentLayerRenderer.transform(howeredShape.segment, new MatrixStack());
+
+				//RenderType rt = RenderType.makeType("sb", DefaultVertexFormats.POSITION_COLOR, 7, 256, RenderType.State.getBuilder().build(false));
+				IVertexBuilder buffer = mc.getRenderTypeBuffers().getBufferSource().getBuffer(CustomRenderTypes.HIGHLIGHT);
+				//IVertexBuilder buffer = mc.getRenderTypeBuffers().getBufferSource().getBuffer(RenderType.getEntityAlpha(AtlasTexture.LOCATION_BLOCKS_TEXTURE, 1.0F));
+				//IVertexBuilder buffer = mc.getRenderTypeBuffers().getBufferSource().getBuffer(RenderType.LINES);
+				for (OBB box : howeredShape.getBoxes()) {
+					try {
+						box.renderVBO(ms2, buffer, 0F, 1F, 0F, 0.5F);
+					} catch (Exception e) {
+						System.out.println(e);
+					}
+				}
+				if (clickBody == 0) {
+					if (invent.clickLayer(howeredShape.layer)) {
+						PacketHandler.sendToServer(new EquipmentPacket(howeredShape.layer));
+						clickBody = -1;
+					}
+				}
+			}
+		}
+	}
+
+	private void renderClickBox(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks,
+			ClickOBBShape clickShape) {
+
+		EPlayerInventory invent = (EPlayerInventory) playerInventory;
+
+		float x0 = mouseX;
+		float y0 = mouseY;
+		x0 -= this.guiLeft + (xSize / 2);
+		y0 -= this.guiTop + ySize - 20;
+		x0 /= 60;
+		y0 /= 60;
+
+		boolean canInteract = clickShape.layer.canInteract(invent.equipmentSlots);
+		boolean howered = clickShape.hower(matrixStack, x0, y0) < Double.POSITIVE_INFINITY;
+		boolean free = !invent.equipmentSlots.get(clickShape.layer.ordinal()).isEmpty();
+
+		float colorBoost = 0.5F;
+		if (howered) {
+			colorBoost = 1.0F;
+		}
+
+		float r = 0.0F;
+		float g = 1.0F;
+		if (!canInteract || free) {
+			r = 1.0F;
+			g = 0.0F;
+		}
+
+		IVertexBuilder buffer = mc.getRenderTypeBuffers().getBufferSource().getBuffer(RenderType.LINES);
+		for (OBB box : clickShape.getBoxes()) {
+			box.render(matrixStack, buffer, r, g, 0F, colorBoost);
+		}
+		//System.out.println("x");
+
+		if (canInteract && howered && clickBody == 0) {
+
+			if (invent.clickLayer(clickShape.layer)) {
+				PacketHandler.sendToServer(new EquipmentPacket(clickShape.layer));
+				clickBody = -1;
+			}
+
+			/*
+			int n = clickShape.layer.ordinal();
+			if (invent.equipmentSlots.get(n).isEmpty()) {
+				invent.setInventorySlotContents(n + EPlayerInventory.eqOffset, invent.getItemStack());
+				invent.setItemStack(ItemStack.EMPTY);
+				System.out.println("x");
+				
+			}
+			*/
+		}
 	}
 
 	@Override

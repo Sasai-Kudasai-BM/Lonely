@@ -3,16 +3,21 @@ package net.skds.lonely;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.skds.core.events.PacketRegistryEvent;
+import net.skds.lonely.client.ClientEventsModBus;
+import net.skds.lonely.network.EquipmentPacket;
 import net.skds.lonely.network.OpenEGuiPacket;
 import net.skds.lonely.reg.ContTypes;
+import net.skds.lonely.reg.RegEntity;
 import net.skds.lonely.reg.RegItems;
 
 @Mod(Lonely.MOD_ID)
@@ -37,11 +42,13 @@ public class Lonely {
 		IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
 		ContTypes.reg(bus);
 		RegItems.reg(bus);
+		RegEntity.reg(bus);
 	}
 
 	
 	public void net(PacketRegistryEvent e) {
 		e.registerPacket(OpenEGuiPacket.class, OpenEGuiPacket::encoder, OpenEGuiPacket::decoder, OpenEGuiPacket::handle);
+		e.registerPacket(EquipmentPacket.class, EquipmentPacket::encoder, EquipmentPacket::decoder, EquipmentPacket::handle);
 	}
 
     private void setup(final FMLCommonSetupEvent event) {
@@ -52,4 +59,9 @@ public class Lonely {
 
     private void processIMC(final InterModProcessEvent event) {
     }
+
+	static {		
+		DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> ClientEventsModBus::initClient);
+	}
+
 }

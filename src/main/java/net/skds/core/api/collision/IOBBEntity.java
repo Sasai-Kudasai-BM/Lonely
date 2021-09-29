@@ -1,14 +1,12 @@
 package net.skds.core.api.collision;
 
-import java.util.List;
-
 import net.skds.core.util.mat.Vec3;
-import net.skds.core.util.other.collision.OBB;
 import net.skds.core.util.other.collision.OBBBody;
+import net.skds.core.util.other.collision.OBBShape;
 
 public interface IOBBEntity {
 
-	public List<OBB> getBoxes();
+	public OBBShape getShape();
 	public OBBBody<?> getBody();
 
 	public Vec3 getRotation();

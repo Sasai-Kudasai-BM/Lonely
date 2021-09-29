@@ -71,6 +71,9 @@ public class BBParser {
 		jsonobject.get("elements").getAsJsonArray().forEach(e -> {
 			JsonObject jo = e.getAsJsonObject();
 			String name = jo.get("name").getAsString();
+			if (name.startsWith("#")) {
+				return;
+			}
 			JsonArray from = jo.get("from").getAsJsonArray();
 			JsonArray to = jo.get("to").getAsJsonArray();
 			JsonArray origin = jo.get("origin").getAsJsonArray();
@@ -94,7 +97,7 @@ public class BBParser {
 			}
 			Vec3 center = new Vec3(origin.get(0).getAsDouble() / 16, origin.get(1).getAsDouble() / 16, origin.get(2).getAsDouble() / 16);
 
-			list.add(OBB.create(aabb, matrix3, center, name));
+			list.add(OBB.create(aabb, matrix3, center, name).offset(new Vec3(-0.5, -0.5, -0.5)));
 
 		});
 

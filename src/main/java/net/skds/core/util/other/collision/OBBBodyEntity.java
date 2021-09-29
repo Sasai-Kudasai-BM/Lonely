@@ -1,8 +1,5 @@
 package net.skds.core.util.other.collision;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.nbt.CompoundNBT;
@@ -10,6 +7,7 @@ import net.minecraft.nbt.ListNBT;
 import net.minecraft.world.World;
 import net.skds.core.api.collision.IOBBEntity;
 import net.skds.core.util.mat.Vec3;
+import net.skds.lonely.client.bbreader.BBParser;
 
 public abstract class OBBBodyEntity extends Entity implements IOBBEntity {
 
@@ -27,10 +25,8 @@ public abstract class OBBBodyEntity extends Entity implements IOBBEntity {
 	}
 
 	@Override
-	public List<OBB> getBoxes() {
-		List<OBB> list = new ArrayList<>();
-		list.add(OBB.create(getBoundingBox()));
-		return list;
+	public OBBShape getShape() {
+		return new OBBShape(BBParser.get("lonely:bbmodels/prikol.bbmodel"));
 	}
 
 	@Override

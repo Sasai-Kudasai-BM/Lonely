@@ -188,6 +188,7 @@ public class OBB {
 
 	@OnlyIn(Dist.CLIENT)
 	public void render(MatrixStack matrixStack, IVertexBuilder buffer, float r, float g, float b, float a) {
+
 		Matrix4f m4f = matrixStack.getLast().getMatrix();
 		for (int k = 0; k < 3; k++) {
 			for (int i = 0; i < 8; i++) {
@@ -208,14 +209,24 @@ public class OBB {
 			smallaabb = smallaabb.offset(deb.getMojangD());
 			WorldRenderer.drawBoundingBox(matrixStack, buffer, smallaabb, 1, 0, 0, 1);
 		}
-		for (Vec3 deb : points) {
-			//System.out.println(deb);
-			double d = 0.01;
-			AxisAlignedBB smallaabb = new AxisAlignedBB(d, d, d, -d, -d, -d);
-			smallaabb = smallaabb.offset(deb.getMojangD());
-			WorldRenderer.drawBoundingBox(matrixStack, buffer, smallaabb, 1, 1, 0, 1);
+
+	}
+
+	@OnlyIn(Dist.CLIENT)
+	public void renderVBO(MatrixStack matrixStack, IVertexBuilder buffer, float r, float g, float b, float a) {
+
+		Matrix4f m4f = matrixStack.getLast().getMatrix();
+		//System.out.println("x");
+		int[] cof = {2, 3, 1, 0, 4, 5, 7, 6, 0, 1, 5, 4, 6, 7, 3, 2, 4, 6, 2, 0, 1, 3, 7, 5};
+
+		//int[] cof = {2, 3, 1, 0, 4, 5, 7, 6};
+		//int[] cof = {0, 1, 5, 4, 6, 7, 3, 2};
+		//int[] cof = {4, 6, 2, 0, 1, 3, 7, 5};
+		for (int j : cof) {
+			Vec3 vertex = points[j % 8];
+			buffer.pos(m4f, (float) vertex.x, (float) vertex.y, (float) vertex.z).color(r, g, b, a).endVertex();
 		}
-		//WorldRenderer.drawBoundingBox(matrixStack, buffer, aabb, 1, 1, 1, 1);
+
 	}
 
 	private AxisAlignedBB getAABB() {

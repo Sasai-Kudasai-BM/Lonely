@@ -26,7 +26,7 @@ public class OBBBody<E extends Entity & IOBBEntity> {
 		motion = new Vec3(entity.getMotion());
 		AxisAlignedBB largeBox = entity.getBoundingBox();
 
-		for (OBB obb : entity.getBoxes()) {
+		for (OBB obb : entity.getShape().boxes) {
 			largeBox = largeBox.union(obb.aabb);
 		}
 
