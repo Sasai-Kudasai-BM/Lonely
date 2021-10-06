@@ -1,4 +1,4 @@
-package net.skds.lonely.client.bbreader;
+package net.skds.core.util.other.collision;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,15 +16,14 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonReader;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.resources.IResourceManager;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.skds.core.SKDSCore;
+import net.skds.core.util.JarFileReader;
 import net.skds.core.util.mat.Matrix3;
 import net.skds.core.util.mat.Quat;
 import net.skds.core.util.mat.Vec3;
-import net.skds.core.util.other.collision.OBB;
 import net.skds.lonely.Lonely;
 
 @OnlyIn(Dist.CLIENT)
@@ -42,30 +41,45 @@ public class BBParser {
 	}
 
 	public static void read() {
-		Map<String, List<OBB>> newBoxes = new HashMap<>();
+		JarFileReader jfr = new JarFileReader("obbshapes");
+		try {
+			jfr.read();
+		} catch (IOException e) {
+			SKDSCore.LOGGER.error(e);
+		}
+		boxes.clear();
+		for (String path : jfr.files) {
+			readJson(path);
+		}
 
-		IResourceManager manager = Minecraft.getInstance().getResourceManager();
-		manager.getAllResourceLocations("bbmodels", s -> s.endsWith(".bbmodel")).forEach(rl -> {
-
-			JsonObject jsonobject = new JsonObject();
-			try {
-				InputStream is = manager.getResource(rl).getInputStream();
-				Reader r = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
-				JsonReader jsonReader = new JsonReader(r);
-				Gson GSON = new Gson();
-				jsonobject = GSON.getAdapter(JsonObject.class).read(jsonReader);
-
-				newBoxes.put(rl.toString(), parseBBM(jsonobject));
-
-				Lonely.LOGGER.info("Loaded BB " + rl.toString());
-			} catch (IOException e) {
-				Lonely.LOGGER.error("BB Loading error " + rl.toString());
-			}
-		});
-		boxes = newBoxes;
 	}
 
-	public static List<OBB> parseBBM(JsonObject jsonobject) {
+	private static void readJson(String path) {
+
+		JsonObject jsonobject = new JsonObject();
+		try {
+			InputStream is = BBParser.class.getClassLoader().getResourceAsStream(path);
+			if (is == null) {
+
+				System.out.println("Pizdec " + path);
+				return;
+			}
+			Reader r = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+			JsonReader jsonReader = new JsonReader(r);
+			Gson GSON = new Gson();
+			jsonobject = GSON.getAdapter(JsonObject.class).read(jsonReader);
+
+			String shortPath = path.replace("obbshapes/", "");
+
+			boxes.put(shortPath, parseBBM(jsonobject));
+
+			Lonely.LOGGER.info("Loaded BBM " + shortPath);
+		} catch (IOException e) {
+			Lonely.LOGGER.error("BBM Loading error " + path);
+		}
+	}
+
+	private static List<OBB> parseBBM(JsonObject jsonobject) {
 		List<OBB> list = new ArrayList<>();
 
 		jsonobject.get("elements").getAsJsonArray().forEach(e -> {
@@ -95,7 +109,8 @@ public class BBParser {
 			} else {
 				matrix3 = new Matrix3();
 			}
-			Vec3 center = new Vec3(origin.get(0).getAsDouble() / 16, origin.get(1).getAsDouble() / 16, origin.get(2).getAsDouble() / 16);
+			Vec3 center = new Vec3(origin.get(0).getAsDouble() / 16, origin.get(1).getAsDouble() / 16,
+					origin.get(2).getAsDouble() / 16);
 
 			list.add(OBB.create(aabb, matrix3, center, name).offset(new Vec3(-0.5, -0.5, -0.5)));
 

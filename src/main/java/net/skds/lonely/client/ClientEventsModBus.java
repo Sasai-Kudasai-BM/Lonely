@@ -16,8 +16,8 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.resource.IResourceType;
 import net.minecraftforge.resource.ISelectiveResourceReloadListener;
+import net.skds.core.util.other.collision.BBParser;
 import net.skds.lonely.Lonely;
-import net.skds.lonely.client.bbreader.BBParser;
 import net.skds.lonely.client.inventory.EGui;
 import net.skds.lonely.client.models.LModelLoader;
 import net.skds.lonely.client.models.ModelReg;
@@ -41,6 +41,7 @@ public class ClientEventsModBus {
 		registerRenderers();
 
 		((IReloadableResourceManager) Minecraft.getInstance().getResourceManager()).addReloadListener(reloaader);
+		BBParser.read();
 	}
 
 	@SubscribeEvent

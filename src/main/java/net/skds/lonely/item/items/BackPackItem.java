@@ -9,9 +9,9 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.skds.core.util.other.collision.BBParser;
 import net.skds.core.util.other.collision.OBB;
 import net.skds.core.util.other.collision.OBBShape;
-import net.skds.lonely.client.bbreader.BBParser;
 import net.skds.lonely.client.inventory.BodyPart.Segment;
 import net.skds.lonely.client.render.LonelyItemRenderer;
 import net.skds.lonely.client.render.renderers.BackpackRenderer;
@@ -52,7 +52,7 @@ public class BackpackItem extends Item implements ILonelyEquipItem {
 
 	@Override
 	public OBBShape getShape(ItemStack stack) {
-		List<OBB> list = BBParser.get("lonely:bbmodels/backpack.bbmodel");
+		List<OBB> list = BBParser.get("lonely/backpack.bbmodel");
 		return new OBBShape(list);
 	}
 

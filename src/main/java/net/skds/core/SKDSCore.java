@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -12,6 +13,7 @@ import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.skds.core.network.PacketHandler;
+import net.skds.core.register.RegSerializers;
 
 @Mod("skds_core")
 public class SKDSCore {
@@ -32,7 +34,9 @@ public class SKDSCore {
 		MinecraftForge.EVENT_BUS.register(EVENTS);
 		MinecraftForge.EVENT_BUS.register(this);
 		SKDSCoreConfig.init();
-		//RegisterDebug.register();		
+		//RegisterDebug.register();	
+		IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();	
+		RegSerializers.reg(bus);
 	}
 
     private void setup(final FMLCommonSetupEvent event) {

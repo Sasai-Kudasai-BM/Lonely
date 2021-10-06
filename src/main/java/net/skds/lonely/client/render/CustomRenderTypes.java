@@ -14,7 +14,7 @@ public class CustomRenderTypes extends RenderType {
 	}
 
 	public static RenderType getHL() {
-		RenderType.State state = RenderType.State.getBuilder().transparency(TRANSLUCENT_TRANSPARENCY).depthTest(DEPTH_LEQUAL).diffuseLighting(DIFFUSE_LIGHTING_DISABLED).build(false);
+		RenderType.State state = RenderType.State.getBuilder().transparency(ADDITIVE_TRANSPARENCY).depthTest(DEPTH_LEQUAL).diffuseLighting(DIFFUSE_LIGHTING_DISABLED).build(false);
 		return makeType("highlight", DefaultVertexFormats.POSITION_COLOR, 7, 256, false, true, state);
 	}
 }

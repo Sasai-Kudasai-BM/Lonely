@@ -3,7 +3,6 @@ package net.skds.core.util.other.collision;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 
-import org.apache.commons.lang3.ArrayUtils;
 
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -24,6 +23,8 @@ public class OBB {
 	public final AxisAlignedBB aabb;
 
 	public final String name;
+
+	private Vec3 centerCash = null;
 
 	public Vec3[] debug = new Vec3[0];
 
@@ -130,12 +131,16 @@ public class OBB {
 	}
 
 	public Vec3 getCenter() {
-		Vec3 sum = Vec3.ZERO;
-		for (Vec3 point : points) {
-			sum = sum.add(point);
+
+		if (centerCash == null) {
+
+			Vec3 sum = Vec3.ZERO;
+			for (Vec3 point : points) {
+				sum = sum.add(point);
+			}
+			centerCash = sum.scale(1D / 8);
 		}
-		return sum.scale(1D / 8);
-		//return new Vec3(aabb.getCenter());
+		return centerCash;
 	}
 
 	public Vec3 rayTrace(Vector3f from, Vector3f to) {
@@ -181,13 +186,19 @@ public class OBB {
 			}
 		}
 		//System.out.println(name + " " + normals[1]);
-		debug = ArrayUtils.addAll(debug, new Vec3[] { from.add(dir.scale(tMax)), from.add(dir.scale(tMin)) });
+		//debug = ArrayUtils.addAll(debug, new Vec3[] { from.add(dir.scale(tMax)), from.add(dir.scale(tMin)) });
 
 		return from.add(dir.scale(tMin));
 	}
 
 	@OnlyIn(Dist.CLIENT)
 	public void render(MatrixStack matrixStack, IVertexBuilder buffer, float r, float g, float b, float a) {
+		render(matrixStack, buffer, r, g, b, a, 0);
+	}
+
+	@OnlyIn(Dist.CLIENT)
+	public void render(MatrixStack matrixStack, IVertexBuilder buffer, float r, float g, float b, float a,
+			float extend) {
 
 		Matrix4f m4f = matrixStack.getLast().getMatrix();
 		for (int k = 0; k < 3; k++) {
@@ -196,6 +207,12 @@ public class OBB {
 				int j = n % 8;
 				j += n >> 3;
 				Vec3 vertex = points[j % 8];
+
+				if (extend != 0) {
+					Vec3 ext = vertex.subtract(getCenter()).normalize().scale(extend);
+					vertex = vertex.add(ext);
+				}
+
 				buffer.pos(m4f, (float) vertex.x, (float) vertex.y, (float) vertex.z).color(r, g, b, a).endVertex();
 			}
 		}
@@ -214,16 +231,26 @@ public class OBB {
 
 	@OnlyIn(Dist.CLIENT)
 	public void renderVBO(MatrixStack matrixStack, IVertexBuilder buffer, float r, float g, float b, float a) {
+		renderVBO(matrixStack, buffer, r, g, b, a, 0);
+	}
+
+	@OnlyIn(Dist.CLIENT)
+	public void renderVBO(MatrixStack matrixStack, IVertexBuilder buffer, float r, float g, float b, float a,
+			float extend) {
 
 		Matrix4f m4f = matrixStack.getLast().getMatrix();
 		//System.out.println("x");
-		int[] cof = {2, 3, 1, 0, 4, 5, 7, 6, 0, 1, 5, 4, 6, 7, 3, 2, 4, 6, 2, 0, 1, 3, 7, 5};
+		int[] cof = { 2, 3, 1, 0, 4, 5, 7, 6, 0, 1, 5, 4, 6, 7, 3, 2, 4, 6, 2, 0, 1, 3, 7, 5 };
 
 		//int[] cof = {2, 3, 1, 0, 4, 5, 7, 6};
 		//int[] cof = {0, 1, 5, 4, 6, 7, 3, 2};
 		//int[] cof = {4, 6, 2, 0, 1, 3, 7, 5};
 		for (int j : cof) {
 			Vec3 vertex = points[j % 8];
+			if (extend != 0) {
+				Vec3 ext = vertex.subtract(getCenter()).normalize().scale(extend);
+				vertex = vertex.add(ext);
+			}
 			buffer.pos(m4f, (float) vertex.x, (float) vertex.y, (float) vertex.z).color(r, g, b, a).endVertex();
 		}
 

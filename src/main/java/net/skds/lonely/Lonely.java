@@ -44,7 +44,6 @@ public class Lonely {
 		RegItems.reg(bus);
 		RegEntity.reg(bus);
 	}
-
 	
 	public void net(PacketRegistryEvent e) {
 		e.registerPacket(OpenEGuiPacket.class, OpenEGuiPacket::encoder, OpenEGuiPacket::decoder, OpenEGuiPacket::handle);

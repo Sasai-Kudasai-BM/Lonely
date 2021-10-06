@@ -15,6 +15,7 @@ import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.client.renderer.IRenderTypeBuffer.Impl;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.entity.Entity;
@@ -447,12 +448,21 @@ public class EGui extends ContainerScreen<EContainer> {
 				MatrixStack ms2 = EquipmentLayerRenderer.transform(howeredShape.segment, new MatrixStack());
 
 				//RenderType rt = RenderType.makeType("sb", DefaultVertexFormats.POSITION_COLOR, 7, 256, RenderType.State.getBuilder().build(false));
-				IVertexBuilder buffer = mc.getRenderTypeBuffers().getBufferSource().getBuffer(CustomRenderTypes.HIGHLIGHT);
+				//IVertexBuilder buffer = mc.getRenderTypeBuffers().getBufferSource().getBuffer(CustomRenderTypes.HIGHLIGHT);
+				Impl impl = mc.getRenderTypeBuffers().getBufferSource();
 				//IVertexBuilder buffer = mc.getRenderTypeBuffers().getBufferSource().getBuffer(RenderType.getEntityAlpha(AtlasTexture.LOCATION_BLOCKS_TEXTURE, 1.0F));
-				//IVertexBuilder buffer = mc.getRenderTypeBuffers().getBufferSource().getBuffer(RenderType.LINES);
+				IVertexBuilder bufferL = impl.getBuffer(RenderType.LINES);
 				for (OBB box : howeredShape.getBoxes()) {
 					try {
-						box.renderVBO(ms2, buffer, 0F, 1F, 0F, 0.5F);
+						box.render(ms2, bufferL, 0F, 1F, 0F, 1F, 0.001F);
+					} catch (Exception e) {
+						System.out.println(e);
+					}
+				}
+				IVertexBuilder buffer = impl.getBuffer(CustomRenderTypes.getHL());
+				for (OBB box : howeredShape.getBoxes()) {
+					try {
+						box.renderVBO(ms2, buffer, 0F, 0.3F, 0F, 0.3F, 0.001F);
 					} catch (Exception e) {
 						System.out.println(e);
 					}

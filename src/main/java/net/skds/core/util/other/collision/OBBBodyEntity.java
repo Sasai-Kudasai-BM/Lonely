@@ -3,115 +3,61 @@ package net.skds.core.util.other.collision;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
+import net.minecraft.network.datasync.DataParameter;
+import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.world.World;
-import net.skds.core.api.collision.IOBBEntity;
-import net.skds.core.util.mat.Vec3;
-import net.skds.lonely.client.bbreader.BBParser;
+import net.skds.core.register.RegSerializers;
+import net.skds.core.util.other.collision.OBBBody.PhysData;
 
-public abstract class OBBBodyEntity extends Entity implements IOBBEntity {
+public abstract class OBBBodyEntity extends Entity {
 
-	private OBBBody<OBBBodyEntity> body;
+	private OBBBody<? extends OBBBodyEntity> body;
+	
+	private static final DataParameter<PhysData> PHYS_DATA = EntityDataManager.createKey(OBBBodyEntity.class, RegSerializers.PHYS_SERIAL);
 
-	private Vec3 momentum = Vec3.SINGLE;
-	private Vec3 spin = Vec3.ZERO;
-	private Vec3 rotation = Vec3.ZERO;
-	private Vec3 com = Vec3.ZERO;
-
-	private double mass = 1D;
 
 	public OBBBodyEntity(EntityType<?> entityTypeIn, World worldIn) {
 		super(entityTypeIn, worldIn);
+		body = new OBBBody<OBBBodyEntity>(this);
 	}
 
-	@Override
-	public OBBShape getShape() {
-		return new OBBShape(BBParser.get("lonely:bbmodels/prikol.bbmodel"));
+	public abstract OBBShape getShape();
+
+	public void setBody(OBBBody<? extends OBBBodyEntity> body) {
+		this.body = body;		
 	}
 
-	@Override
-	public OBBBody<?> getBody() {
+	public OBBBody<? extends OBBBodyEntity> getBody() {
 		return body;
 	}
 
 	@Override
-	public Vec3 getRotation() {
-		return rotation;
-	}
-
-	@Override
-	public Vec3 getSpin() {
-		return spin;
-	}
-
-	@Override
-	public Vec3 getMomentum() {
-		return momentum;
-	}
-
-	@Override
-	public Vec3 getCOM() {
-		return com;
-	}
-
-	@Override
-	public double getMass() {
-		return mass;
-	}
-
-	@Override
-	public void setRotation(Vec3 rotation) {
-		this.rotation = rotation;
-	}
-
-	@Override
-	public void setSpin(Vec3 spin) {
-		this.spin = spin;
-	}
-
-	@Override
-	public void setMomentum(Vec3 momentum) {
-		this.momentum = momentum;
-	}
-
-	@Override
-	public void setCOM(Vec3 com) {
-		this.com = com;
-	}
-
-	@Override
-	public void setMass(double mass) {
-		this.mass = mass;
-	}
-
-	@Override
 	protected void readAdditional(CompoundNBT compound) {
-		if (compound.contains("Mass"))
-			mass = compound.getDouble("Mass");
-
-		ListNBT listnbt = compound.getList("Rotation3d", 6);
-		rotation = new Vec3(OBBBody.approxAngle(listnbt.getDouble(0)), OBBBody.approxAngle(listnbt.getDouble(1)),
-				OBBBody.approxAngle(listnbt.getDouble(2)));
-
-		listnbt = compound.getList("Spin", 6);
-		spin = new Vec3(listnbt.getDouble(0), listnbt.getDouble(1), listnbt.getDouble(2));
-
-		listnbt = compound.getList("Momentum", 6);
-		momentum = new Vec3(listnbt.getDouble(0), listnbt.getDouble(1), listnbt.getDouble(2));
-
-		listnbt = compound.getList("COM", 6);
-		com = new Vec3(listnbt.getDouble(0), listnbt.getDouble(1), listnbt.getDouble(2));
+		getBody().physData.readAdditional(compound);
 
 	}
 
 	@Override
 	protected void writeAdditional(CompoundNBT compound) {
-		compound.put("Rotation3d", this.newDoubleNBTList(rotation.x, rotation.y, rotation.z));
-		compound.put("Spin", this.newDoubleNBTList(spin.x, spin.y, spin.z));
-		compound.put("Momentum", this.newDoubleNBTList(momentum.x, momentum.y, momentum.z));
-		compound.put("COM", this.newDoubleNBTList(com.x, com.y, com.z));
+		getBody().physData.writeAdditional(compound);
+	}
 
-		compound.putDouble("Mass", mass);
+	@Override
+	public void tick() {
+		body.tick();
+	}
+
+	@Override
+	protected void registerData() {
+		this.getDataManager().register(PHYS_DATA, new PhysData());		
+	}
+	
+	public void syncData() {
+		if (world.isRemote) {
+			body.physData = dataManager.get(PHYS_DATA);
+		} else {
+			dataManager.set(PHYS_DATA, body.physData);
+		}		
 	}
 
 }
