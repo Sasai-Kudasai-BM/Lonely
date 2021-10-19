@@ -1,14 +1,18 @@
 package net.skds.mixins.multithreading;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+
+import com.mojang.datafixers.util.Either;
+
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.Util;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkStatus;
@@ -16,13 +20,8 @@ import net.minecraft.world.chunk.IChunk;
 import net.minecraft.world.server.ChunkHolder;
 import net.minecraft.world.server.ServerChunkProvider;
 import net.minecraft.world.server.ServerWorld;
-import net.skds.core.api.multithreading.ISKDSThread;
 import net.skds.core.api.IServerChunkProvider;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-
-import com.mojang.datafixers.util.Either;
-import net.minecraft.util.Util;
+import net.skds.core.api.multithreading.ISKDSThread;
 
 @Mixin(value = { ServerChunkProvider.class })
 public abstract class ServerChunkProviderMixin implements IServerChunkProvider {
@@ -90,24 +89,4 @@ public abstract class ServerChunkProviderMixin implements IServerChunkProvider {
 		return null;
 	}
 
-	@Inject(method = "func_225315_a", at = @At(value = "HEAD"), cancellable = true)
-	private void swapp(long l, IChunk ic, ChunkStatus cs, CallbackInfo ci) {
-		if (Thread.currentThread() != mainThread) {
-			ci.cancel();
-		}
-	}
-
-	@Inject(method = "markBlockChanged", at = @At(value = "HEAD", ordinal = 0), cancellable = true)
-	public synchronized void markBlockChanged(BlockPos pos, CallbackInfo ci) {
-		if (Thread.currentThread() instanceof ISKDSThread) {
-			int i = pos.getX() >> 4;
-			int j = pos.getZ() >> 4;
-			ChunkHolder chunkholder = this.func_217213_a(ChunkPos.asLong(i, j));
-			if (chunkholder != null) {
-				chunkholder.func_244386_a(pos);
-			}
-			ci.cancel();
-		}
-
-	}
 }

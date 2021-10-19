@@ -60,8 +60,6 @@ public class BBParser {
 		try {
 			InputStream is = BBParser.class.getClassLoader().getResourceAsStream(path);
 			if (is == null) {
-
-				System.out.println("Pizdec " + path);
 				return;
 			}
 			Reader r = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
@@ -69,7 +67,7 @@ public class BBParser {
 			Gson GSON = new Gson();
 			jsonobject = GSON.getAdapter(JsonObject.class).read(jsonReader);
 
-			String shortPath = path.replace("obbshapes/", "");
+			String shortPath = path.replace("obbshapes/", "").replace(".bbmodel", "");
 
 			boxes.put(shortPath, parseBBM(jsonobject));
 

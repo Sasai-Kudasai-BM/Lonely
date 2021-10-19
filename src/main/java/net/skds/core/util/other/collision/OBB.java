@@ -3,6 +3,7 @@ package net.skds.core.util.other.collision;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 
+import org.apache.commons.lang3.ArrayUtils;
 
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -13,7 +14,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.skds.core.util.mat.Matrix3;
 import net.skds.core.util.mat.Vec3;
-import net.skds.core.util.other.collision.OBBCollision.Pair;
+import net.skds.core.util.other.collision.OBBCollision.ProjPair;
 
 public class OBB {
 	public final Vec3 center;
@@ -186,9 +187,9 @@ public class OBB {
 			}
 		}
 		//System.out.println(name + " " + normals[1]);
-		//debug = ArrayUtils.addAll(debug, new Vec3[] { from.add(dir.scale(tMax)), from.add(dir.scale(tMin)) });
+		debug = ArrayUtils.addAll(debug, new Vec3[] { from.add(dir.scale(tMax)), from.add(dir.scale(tMin)) });
 
-		return from.add(dir.scale(tMin));
+		return dir.scale(tMin);
 	}
 
 	@OnlyIn(Dist.CLIENT)
@@ -276,10 +277,10 @@ public class OBB {
 		return new AxisAlignedBB(minX, minY, minZ, maxX, maxY, maxZ);
 	}
 
-	public Pair ProjAxis(Vec3 direct) {
-		Pair pair = new Pair();
-		pair.max = Double.NEGATIVE_INFINITY;
-		pair.min = Double.POSITIVE_INFINITY;
+	public ProjPair ProjAxis(Vec3 direct) {
+		ProjPair pair = new ProjPair();
+		pair.max = -Double.MAX_VALUE;
+		pair.min = Double.MAX_VALUE;
 		for (Vec3 point : points) {
 			double proj = point.ProjOnNormalized(direct);
 			if (proj > pair.max) {
@@ -290,5 +291,18 @@ public class OBB {
 			}
 		}
 		return pair;
+	}
+
+	public Vec3 nearestPoint(Vec3 axis) {
+		Vec3 maxPoint = Vec3.ZERO;
+		double mp = -Double.MAX_VALUE;
+		for (Vec3 point : points) {
+			double proj = point.ProjOnNormalized(axis);
+			if (proj > mp) {
+				mp = proj;
+				maxPoint = point;
+			}
+		}
+		return maxPoint;
 	}
 }

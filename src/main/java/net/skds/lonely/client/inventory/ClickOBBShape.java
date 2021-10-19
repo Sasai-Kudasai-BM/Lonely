@@ -38,20 +38,29 @@ public class ClickOBBShape extends OBBShape {
 		if (isEmpty()) {
 			return min;
 		}
-		matrixStack.push();
+		matrixStack.push();		
+		float f = 1F / 0.9375F;
+		matrixStack.scale(f, f, f);
 		Pair<Matrix3f, Matrix4f> pair = EquipmentLayerRenderer.getTransform(segment);
 		Matrix3f matrix3f = pair.a.copy();
 		matrix3f.transpose();
 		Matrix4f matrix4f = pair.b;
 		TransformationMatrix transformationMatrix = new TransformationMatrix(matrix4f);
 		Vector3f trans = transformationMatrix.getTranslation();
-		trans.mul(-1F / 60);
-		Vector3f vf1 = new Vector3f(x0, y0, 100);
-		Vector3f vf2 = new Vector3f(x0, y0, -100);
+		Vector3f scale = transformationMatrix.getScale();
+		float s = 1F / 60;
+		trans.mul(-s);
+		float sx = 1F / (scale.getX() * s);
+		float sy = 1F / (scale.getY() * s);
+		float sz = 1F / (scale.getZ() * s);
+		Vector3f vf1 = new Vector3f(x0, y0, -100);
+		Vector3f vf2 = new Vector3f(x0, y0, 100);
 		vf1.add(trans);
 		vf2.add(trans);
 		vf1.transform(matrix3f);
 		vf2.transform(matrix3f);
+		vf1.mul(sx, sy, sz);
+		vf2.mul(sx, sy, sz);
 		matrixStack.pop();
 
 		for (OBB obb : boxes) {

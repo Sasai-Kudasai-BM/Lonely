@@ -4,6 +4,7 @@ import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.IPacket;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
@@ -16,6 +17,7 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.skds.core.util.other.collision.BBParser;
 import net.skds.core.util.other.collision.OBBBodyEntity;
 import net.skds.core.util.other.collision.OBBShape;
+import net.skds.lonely.item.ILonelyItem;
 import net.skds.lonely.reg.RegEntity;
 
 public class LonelyItemEntity extends OBBBodyEntity {
@@ -60,11 +62,15 @@ public class LonelyItemEntity extends OBBBodyEntity {
 
 	@Override
 	public OBBShape getShape() {
-		return new OBBShape(BBParser.get("lonely/prikol.bbmodel"));
+		if (!itemStack.isEmpty() && itemStack.getItem() instanceof ILonelyItem) {
+			return ((ILonelyItem) itemStack.getItem()).getShape(itemStack);
+		}
+		return new OBBShape(BBParser.get("lonely/prikol"));
 	}
 
 	@Override
 	public AxisAlignedBB getBoundingBox() {
+		//System.out.println("x");
 		return getShape().getBoundingBox().offset(getPositionVec());
 	}
 
@@ -77,5 +83,18 @@ public class LonelyItemEntity extends OBBBodyEntity {
 	@Override
 	public IPacket<?> createSpawnPacket() {
 		return NetworkHooks.getEntitySpawningPacket(this);
+	}
+
+	@Override
+	protected void writeAdditional(CompoundNBT compound) {
+		super.writeAdditional(compound);
+
+		compound.put("Item", itemStack.write(new CompoundNBT()));
+	}
+
+	@Override
+	protected void readAdditional(CompoundNBT compound) {
+		super.readAdditional(compound);
+		itemStack = ItemStack.read(compound.getCompound("Item"));
 	}
 }

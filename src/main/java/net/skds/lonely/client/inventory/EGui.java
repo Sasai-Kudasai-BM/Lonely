@@ -226,10 +226,6 @@ public class EGui extends ContainerScreen<EContainer> {
 		quaternion.multiply(new Quaternion(Vector3f.YP, player.getYaw(partialTicks) + 180, true));
 
 		matrixStack2.rotate(quaternion);
-		if (clickBody >= 0) {
-			clickBodyPlace(matrixStack2, mouseX, mouseY, clickBody, partialTicks);
-		}
-
 
 		EntityRendererManager entityrenderermanager = mc.getRenderManager();
 		EntityRenderer<? super PlayerEntity> pr = entityrenderermanager.getRenderer(player);
@@ -390,16 +386,6 @@ public class EGui extends ContainerScreen<EContainer> {
 		return super.mouseReleased(mouseX, mouseY, button);
 	}
 
-	private void clickBodyPlace(MatrixStack matrixStack, int mouseX, int mouseY, int button, float partialTicks) {
-
-		if (button == 0) {
-			ClickOBBShape nearest = getHoveredObbShape(matrixStack, mouseX, mouseY, partialTicks);
-			if (nearest != null) {
-				System.out.println(nearest.layer);
-			}
-		}
-	}
-
 	private ClickOBBShape getHoveredObbShape(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
 		matrixStack.push();
 		EPlayerInventory invent = (EPlayerInventory) playerInventory;
@@ -418,6 +404,17 @@ public class EGui extends ContainerScreen<EContainer> {
 
 		for (ClickOBBShape clickShape : invent.getClickShapes()) {
 			double d = clickShape.hower(matrixStack, x0, y0);
+			if (d < min) {
+				min = d;
+				nearest = clickShape;
+			}
+		}
+		for (ClickOBBShape clickShape : BodyPart.getPlayerShapes(player)) {
+			double d = clickShape.hower(matrixStack, x0, y0);
+			//if (d < Double.POSITIVE_INFINITY && clickShape.segment == Segment.RIGHT_ARM) 
+			//System.out.println(clickShape.segment);
+			//System.out.println(d);
+
 			if (d < min) {
 				min = d;
 				nearest = clickShape;
@@ -446,11 +443,7 @@ public class EGui extends ContainerScreen<EContainer> {
 			ClickOBBShape howeredShape = getHoveredObbShape(matrixStack, mouseX, mouseY, partialTicks);
 			if (howeredShape != null) {
 				MatrixStack ms2 = EquipmentLayerRenderer.transform(howeredShape.segment, new MatrixStack());
-
-				//RenderType rt = RenderType.makeType("sb", DefaultVertexFormats.POSITION_COLOR, 7, 256, RenderType.State.getBuilder().build(false));
-				//IVertexBuilder buffer = mc.getRenderTypeBuffers().getBufferSource().getBuffer(CustomRenderTypes.HIGHLIGHT);
 				Impl impl = mc.getRenderTypeBuffers().getBufferSource();
-				//IVertexBuilder buffer = mc.getRenderTypeBuffers().getBufferSource().getBuffer(RenderType.getEntityAlpha(AtlasTexture.LOCATION_BLOCKS_TEXTURE, 1.0F));
 				IVertexBuilder bufferL = impl.getBuffer(RenderType.LINES);
 				for (OBB box : howeredShape.getBoxes()) {
 					try {
@@ -459,7 +452,7 @@ public class EGui extends ContainerScreen<EContainer> {
 						System.out.println(e);
 					}
 				}
-				IVertexBuilder buffer = impl.getBuffer(CustomRenderTypes.getHL());
+				IVertexBuilder buffer = impl.getBuffer(CustomRenderTypes.HIGHLIGHT);
 				for (OBB box : howeredShape.getBoxes()) {
 					try {
 						box.renderVBO(ms2, buffer, 0F, 0.3F, 0F, 0.3F, 0.001F);
@@ -468,9 +461,13 @@ public class EGui extends ContainerScreen<EContainer> {
 					}
 				}
 				if (clickBody == 0) {
-					if (invent.clickLayer(howeredShape.layer)) {
-						PacketHandler.sendToServer(new EquipmentPacket(howeredShape.layer));
-						clickBody = -1;
+					if (howeredShape.layer != null) {
+						if (invent.clickLayer(howeredShape.layer)) {
+							PacketHandler.sendToServer(new EquipmentPacket(howeredShape.layer));
+							clickBody = -1;
+						}
+					} else {
+
 					}
 				}
 			}

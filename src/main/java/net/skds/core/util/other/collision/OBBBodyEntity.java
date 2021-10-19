@@ -33,13 +33,13 @@ public abstract class OBBBodyEntity extends Entity {
 
 	@Override
 	protected void readAdditional(CompoundNBT compound) {
-		getBody().physData.readAdditional(compound);
+		getBody().pd.readAdditional(compound);
 
 	}
 
 	@Override
 	protected void writeAdditional(CompoundNBT compound) {
-		getBody().physData.writeAdditional(compound);
+		getBody().pd.writeAdditional(compound);
 	}
 
 	@Override
@@ -54,9 +54,9 @@ public abstract class OBBBodyEntity extends Entity {
 	
 	public void syncData() {
 		if (world.isRemote) {
-			body.physData = dataManager.get(PHYS_DATA);
+			body.pd = dataManager.get(PHYS_DATA);
 		} else {
-			dataManager.set(PHYS_DATA, body.physData);
+			dataManager.set(PHYS_DATA, body.pd);
 		}		
 	}
 

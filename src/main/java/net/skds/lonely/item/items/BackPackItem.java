@@ -52,7 +52,7 @@ public class BackpackItem extends Item implements ILonelyEquipItem {
 
 	@Override
 	public OBBShape getShape(ItemStack stack) {
-		List<OBB> list = BBParser.get("lonely/backpack.bbmodel");
+		List<OBB> list = BBParser.get("lonely/prikol");
 		return new OBBShape(list);
 	}
 

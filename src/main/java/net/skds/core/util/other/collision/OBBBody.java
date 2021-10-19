@@ -1,8 +1,8 @@
 package net.skds.core.util.other.collision;
 
+import java.util.Iterator;
 import java.util.stream.Stream;
 
-import net.minecraft.entity.Entity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.DoubleNBT;
 import net.minecraft.nbt.ListNBT;
@@ -10,73 +10,79 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.datasync.IDataSerializer;
 import net.minecraft.util.ReuseableStream;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.shapes.IBooleanFunction;
 import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.World;
 import net.skds.core.util.mat.Vec3;
+import net.skds.core.util.other.collision.OBBCollision.CollisionCallback;
 
 public class OBBBody<E extends OBBBodyEntity> {
 	public final E entity;
-	public PhysData physData;
+	public PhysData pd;
 
 	public OBBBody(E entity) {
 		this.entity = entity;
-		this.physData = new PhysData();
-		//this.physData.motion = new Vec3(entity.getMotion());
+		this.pd = new PhysData();
 	}
 
 	public void tick() {
-		//Vec3 motion = physData.motion;
-		Vec3 motion = new Vec3(entity.getMotion());
+		pd.motion = new Vec3(entity.getMotion());
 		AxisAlignedBB largeBox = entity.getBoundingBox();
+		CollisionCallback cc = getCC(pd.motion, largeBox);
 
-		//for (OBB obb : entity.getShape().boxes) {
-		//	largeBox = largeBox.union(obb.aabb);
-		//}
-
-		Vec3 maxMove = getAllowedMovementV3(motion.getMojangD(), largeBox);
-
-		if (maxMove.equals(motion)) {
-			move(motion);
+		if (cc.colide) {
+			move(pd.motion.scale(cc.depth));
+			onCollision(cc, pd.motion);
 		} else {
+			move(pd.motion);
 		}
 
-		physData.motion = motion;
 		setMotion();
 	}
 
-	private void setMotion() {
-		entity.setMotion(physData.motion.getMojangD());
+	private void onCollision(CollisionCallback cc, Vec3 motion) {
+		Vec3 normal = cc.normal.dotProduct(motion) < 0 ? cc.normal : cc.normal.inverse();
+		double normProjVel = motion.ProjOnNormalized(normal);
+		Vec3 slideVel = motion.add(motion.scale(normProjVel));
+
+		//System.out.println(cc.normal);
+
+		pd.motion = slideVel;
 	}
 
-	private Vec3 getAllowedMovementV3(Vector3d vec, AxisAlignedBB axisalignedbb) {
+	private CollisionCallback getCC(Vec3 vec, AxisAlignedBB axisalignedbb) {
+		CollisionCallback cc = CollisionCallback.NONE;
+		if (vec.lengthSquared() == 0.0D) {
+			return cc;
+		}
+		Stream<VoxelShape> stream2 = entity.world.getCollisionShapes(entity,
+				axisalignedbb.expand(vec.getMojangD()).grow(1E-4));
+		ReuseableStream<VoxelShape> reuseablestream = new ReuseableStream<>(stream2);
 
-		VoxelShape voxelshape = entity.world.getWorldBorder().getShape();
-		Stream<VoxelShape> stream = VoxelShapes.compare(voxelshape, VoxelShapes.create(axisalignedbb),
-				IBooleanFunction.AND) ? Stream.empty() : Stream.of(voxelshape);
-
-		ReuseableStream<VoxelShape> reuseablestream = new ReuseableStream<>(stream);
-
-		Vector3d vector3d = vec.lengthSquared() == 0.0D ? vec
-				: collideCustom(vec, axisalignedbb, entity.world, reuseablestream);
-
-		return new Vec3(vector3d);
-	}
-
-	private Vector3d collideCustom(Vector3d vec, AxisAlignedBB collisionBox, World world,
-			ReuseableStream<VoxelShape> potentialHits) {
-		Stream<VoxelShape> stream = world.getCollisionShapes(entity, collisionBox.expand(vec));
-
-		ReuseableStream<VoxelShape> reuseablestream = new ReuseableStream<>(
-				Stream.concat(potentialHits.createStream(), stream));
-
-		return Entity.collideBoundingBox(vec, collisionBox, reuseablestream);
+		Vec3 move = vec;
+		OBBShape shape = entity.getShape();
+		double depth = 1;
+		Iterator<VoxelShape> iterator = reuseablestream.createStream().iterator();
+		while (iterator.hasNext()) {
+			VoxelShape vs = iterator.next();
+			for (AxisAlignedBB aabb : vs.toBoundingBoxList()) {
+				for (OBB boxB : shape.getBoxes()) {
+					CollisionCallback c = OBBCollision.OBB2AABBColide(aabb,
+							boxB.offset(new Vec3(entity.getPositionVec())), move);
+					if (c.colide && depth > c.depth) {
+						depth = c.depth;
+						cc = c;
+					}
+				}
+			}
+		}
+		return cc;
 	}
 
 	private void move(Vec3 move) {
 		entity.setPosition(entity.getPosX() + move.x, entity.getPosY() + move.y, entity.getPosZ() + move.z);
+	}
+
+	private void setMotion() {
+		entity.setMotion(pd.motion.getMojangD());
 	}
 
 	public static double approxAngle(double d) {

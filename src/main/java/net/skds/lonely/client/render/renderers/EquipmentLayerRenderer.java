@@ -84,8 +84,8 @@ public class EquipmentLayerRenderer<T extends PlayerEntity, M extends PlayerMode
 		if (inGui) {
 			for (BodyPart part : playerRenderer.parts) {
 				matrixStack.push();
-				float f = 1F / 0.9375F;
-				matrixStack.scale(f, f, f);
+				//float f = 1F / 0.9375F;
+				//matrixStack.scale(f, f, f);
 				part.applyRotationAndPos(matrixStack);
 				setTransform(part.segment, matrixStack.getLast());
 				matrixStack.pop();
