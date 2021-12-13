@@ -16,13 +16,14 @@ buildscript {
 		mavenCentral()
 	}
 	dependencies {
-		classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '4.+', changing: true
+		classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.+', changing: true
 		classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
 	}
 }
 
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.spongepowered.mixin'
+apply plugin: 'maven-publish'
 apply plugin: 'eclipse'
 
 version = "${project.modVersion}"
@@ -83,8 +84,8 @@ configurations {
 
 dependencies {
 	minecraft 'net.minecraftforge:forge:1.16.5-36.0.14'
-	embed('org.spongepowered:mixin:0.8.3') { transitive = false }
-	annotationProcessor 'org.spongepowered:mixin:0.8.3:processor'
+	embed('org.spongepowered:mixin:0.8.4') { transitive = false }
+	annotationProcessor 'org.spongepowered:mixin:0.8.4:processor'
 	implementation fileTree(dir: 'libs', include: ['*.jar'])
 }
 
@@ -147,6 +148,7 @@ project.tasks.withType(Jar) { jarTask ->
 }
 
 processResources {
+	duplicatesStrategy 'include'
 	finalizedBy replaceResources
 }
 
@@ -157,6 +159,23 @@ task deobfJar(type:Jar) {
 
 artifacts {
 	archives deobfJar
+}
+
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+
+            //artifact jar
+           from components.java
+           groupId = 'com.github.Sasai-Kudasai-BM'
+           artifactId = "Lonely"
+           version = project.version
+        }
+    }
+    repositories {
+        mavenLocal()
+    }
 }
 
 

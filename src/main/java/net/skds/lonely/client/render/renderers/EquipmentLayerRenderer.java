@@ -68,10 +68,12 @@ public class EquipmentLayerRenderer<T extends PlayerEntity, M extends PlayerMode
 		return matrixStack;
 	}
 
-	@SuppressWarnings("unchecked")
-	public EquipmentLayerRenderer(EPlayerRenderer playerRenderer) {
-		super((IEntityRenderer<T, M>) playerRenderer);
-		this.playerRenderer = playerRenderer;
+	public EquipmentLayerRenderer(IEntityRenderer<T, M> playerRenderer) {
+		super(playerRenderer);
+		int ddddd;
+		// TODO
+		//this.playerRenderer = (EPlayerRenderer) playerRenderer;
+		this.playerRenderer = null;
 	}
 
 	@Override

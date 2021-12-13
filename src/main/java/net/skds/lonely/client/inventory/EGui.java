@@ -132,6 +132,7 @@ public class EGui extends ContainerScreen<EContainer> {
 			RenderSystem.translatef(0.0F, 0.0F, 200.0F);
 			RenderSystem.disableDepthTest();
 
+			//RenderSystem.colorMask(true, true, true, true);
 			renderBlack(matrixStack);
 			renderGuiTexture(matrixStack, partialTicks);
 			renderBody(partialTicks, mouseX, mouseY);
