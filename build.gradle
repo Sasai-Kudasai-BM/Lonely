@@ -152,6 +152,11 @@ processResources {
 	finalizedBy replaceResources
 }
 
+def secret = new Properties()
+file("secret.properties").withInputStream {
+    stream -> secret.load(stream)
+}
+
 task deobfJar(type:Jar) {
 	from sourceSets.main.output
 	classifier 'deobf'
@@ -162,21 +167,26 @@ artifacts {
 }
 
 
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-
-            //artifact jar
-           from components.java
-           groupId = 'com.github.Sasai-Kudasai-BM'
-           artifactId = "Lonely"
-           version = project.version
-        }
-    }
-    repositories {
-        mavenLocal()
-    }
-}
+//publishing {
+//    publications {
+//        mavenJava(MavenPublication) {
+//            //artifact jar
+//           from components.java
+//           groupId = 'com.github.Sasai-Kudasai-BM'
+//           artifactId = "Lonely"
+//           version = project.version
+//        }
+//    }
+//    repositories {
+//   	 	maven { url 'https://jitpack.io' 
+//			authentication(userName: secret.user, password: secret.pass)
+//      		//authentication {
+//       		//username = secret.user
+//       		//password = secret.pass
+//      		//}
+//	  	}
+//    }
+//}
 
 
 mixin {
