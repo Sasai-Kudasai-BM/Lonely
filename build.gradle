@@ -152,10 +152,10 @@ processResources {
 	finalizedBy replaceResources
 }
 
-def secret = new Properties()
-file("secret.properties").withInputStream {
-    stream -> secret.load(stream)
-}
+//def secret = new Properties()
+//file("secret.properties").withInputStream {
+//    stream -> secret.load(stream)
+//}
 
 task deobfJar(type:Jar) {
 	from sourceSets.main.output
