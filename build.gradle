@@ -170,16 +170,22 @@ artifacts {
 //publishing {
 //    publications {
 //        mavenJava(MavenPublication) {
-//            //artifact jar
-//           from components.java
+//            artifact jar
+//          // from components.java
 //           groupId = 'com.github.Sasai-Kudasai-BM'
 //           artifactId = "Lonely"
 //           version = project.version
 //        }
 //    }
 //    repositories {
-//   	 	maven { url 'https://jitpack.io' 
-//			authentication(userName: secret.user, password: secret.pass)
+//   	 	maven { 
+//			url 'https://jitpack.io' 
+//			//url 'https://jitpack.io/com/github/Sasai-Kudasai-BM/Lonely' 
+//            credentials {
+//                username = secret.user
+//                password = secret.pass
+//            }
+//			//authentication(secret.user, secret.pass)
 //      		//authentication {
 //       		//username = secret.user
 //       		//password = secret.pass
